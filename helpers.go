@@ -13,7 +13,6 @@ func reply(ctx *th.Context, chatId int64, replyTo int, text string) {
 		tu.ID(chatId),
 		text,
 	).WithReplyParameters(&telego.ReplyParameters{MessageID: replyTo}))
-
 }
 
 func sendMessage(ctx *th.Context, chatId int64, text string) *telego.Message {
@@ -22,7 +21,14 @@ func sendMessage(ctx *th.Context, chatId int64, text string) *telego.Message {
 		text,
 	))
 	return msg
+}
 
+func sendMarkdown(ctx *th.Context, chatId int64, text string) *telego.Message {
+	msg, _ := ctx.Bot().SendMessage(ctx, tu.Message(
+		tu.ID(chatId),
+		text,
+	).WithParseMode(telego.ModeMarkdown))
+	return msg
 }
 
 func isDateValid(dateString string) bool {

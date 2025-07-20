@@ -7,7 +7,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/joho/godotenv"
 	"github.com/mymmrac/telego"
 	th "github.com/mymmrac/telego/telegohandler"
 	tu "github.com/mymmrac/telego/telegoutil"
@@ -17,16 +16,10 @@ func main() {
 
 	// Set up DB
 	initializeDb()
-	err := godotenv.Load()
-
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
-
-	botToken := os.Getenv("TOKEN")
+	config := getConfig()
 
 	//bot, err := telego.NewBot(botToken, telego.WithDefaultDebugLogger())
-	bot, err := telego.NewBot(botToken)
+	bot, err := telego.NewBot(config.Token)
 
 	if err != nil {
 		log.Fatal(err)
@@ -94,7 +87,17 @@ func main() {
 
 	bh.Handle(func(ctx *th.Context, update telego.Update) error {
 		fmt.Printf("New member %s", update.Message.NewChatMembers[0].Username)
-		msg := sendMessage(ctx, update.Message.Chat.ID, fmt.Sprintf("Hola @%s", update.Message.NewChatMembers[0].Username))
+		msg := sendMarkdown(ctx, update.Message.Chat.ID, fmt.Sprintf(`
+			¡Bienvenido/a, %s PARA ENTRAR:
+			- Leer las [normas](%s) (y estar de acuerdo con ellas)
+			- Ser mayor de edad: por las nuevas políticas de Telegram no podemos aceptar a personas menores de 18 años.
+			- Presentarse: edad (obligatorio) de donde vienes, pronombres, nombres etc. Puedes usar esta [plantilla](%s)
+			- Breve descripción y con qué podrías aportar (arte, quedadas, etc) (opcional)
+			- Una vez os leamos seréis admitidos y entraréis en el grupo. Cuando entréis abandonad el grupo de admisión, por favor. Un saludo! 💜🐺
+			`,
+			update.Message.NewChatMembers[0].Username,
+			config.RulesMessageUrl,
+			config.PresentationTemplateMessageUrl))
 		insertNewUser(update.Message.NewChatMembers[0].ID, msg.MessageID)
 		return nil
 	}, NewMember())
