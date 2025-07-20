@@ -71,7 +71,8 @@ func main() {
 			return nil
 		}
 
-		if !re.MatchString(args[0]) {
+		birthdayDate := args[0]
+		if !re.MatchString(birthdayDate) {
 			_, _ = ctx.Bot().SendMessage(ctx, tu.Message(
 				tu.ID(message.Chat.ID),
 				"Error: El cumpleaños debe tener formato dd/mm/yyyy",
@@ -80,7 +81,6 @@ func main() {
 		}
 
 		userId := message.From.ID
-		birthdayDate := args[0]
 		groupId := message.Chat.ID
 		format := "02/01/2006"
 		date, _ := time.Parse(format, birthdayDate)
@@ -128,10 +128,9 @@ func main() {
 
 	privateChatCommands := telego.SetMyCommandsParams{
 		Commands: []telego.BotCommand{
-			{Command: "Hi", Description: "Hello"},
+			{Command: "hi", Description: "Hello"},
 		},
 		Scope:        tu.ScopeAllPrivateChats(),
-		LanguageCode: "es",
 	}
 
 	groupCommands := telego.SetMyCommandsParams{
@@ -140,7 +139,6 @@ func main() {
 			{Command: "next_cumple", Description: "Muestra el próximo cumpleaños"},
 		},
 		Scope:        tu.ScopeAllGroupChats(),
-		LanguageCode: "es",
 	}
 
 	bot.SetMyCommands(context.Background(), &privateChatCommands)
