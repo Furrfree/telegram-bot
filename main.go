@@ -94,13 +94,9 @@ func main() {
 	}, th.CommandEqual("next_cumple"))
 
 	bh.Handle(func(ctx *th.Context, update telego.Update) error {
-		// Send message
 		fmt.Printf("New member %s", update.Message.NewChatMembers[0].Username)
-
 		msg := sendMessage(ctx, update.Message.Chat.ID, fmt.Sprintf("Hola @%s", update.Message.NewChatMembers[0].Username))
-
 		insertNewUser(db, update.Message.NewChatMembers[0].ID, msg.MessageID)
-
 		return nil
 	}, NewMember())
 
