@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"regexp"
 	"time"
 
 	"github.com/furrfree/telegram-bot/entities"
@@ -27,8 +26,8 @@ func main() {
 
 	botToken := os.Getenv("TOKEN")
 
-	bot, err := telego.NewBot(botToken, telego.WithDefaultDebugLogger())
-	//bot, err := telego.NewBot(botToken)
+	//bot, err := telego.NewBot(botToken, telego.WithDefaultDebugLogger())
+	bot, err := telego.NewBot(botToken)
 
 	if err != nil {
 		log.Fatal(err)
@@ -61,15 +60,13 @@ func main() {
 		// Send message
 		_, _, args := tu.ParseCommand(message.Text)
 
-		re := regexp.MustCompile(`^(0?[1-9]|[0-9]|3)/(0?[1-9]|1[0-2])/((19|20)\d{2})$`)
-
 		if len(args) == 0 {
 			reply(ctx, message.Chat.ID, message.MessageID, "Error: No se ha especificado el cumpleaños")
 			return nil
 		}
 
 		birthdayDate := args[0]
-		if !re.MatchString(birthdayDate) {
+		if !isDateValid(birthdayDate) {
 			reply(ctx, message.Chat.ID, message.MessageID, "Error: El cumpleaños debe tener formato dd/mm/yyyy")
 			return nil
 		}

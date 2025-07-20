@@ -21,16 +21,23 @@ func setupDb() *gorm.DB {
 }
 
 func insertBirthday(db *gorm.DB, birthday *entities.Birthday) {
+
+	db.Create(&entities.Birthday{
+		UserId:   birthday.UserId,
+		GroupId:  birthday.GroupId,
+		Date:     birthday.Date,
+		Username: birthday.Username,
+	})
 	db.Create(birthday)
 }
 
-func getNearestBirthday(db *gorm.DB, chatId int64) (*entities.Birthday, error){
+func getNearestBirthday(db *gorm.DB, chatId int64) (*entities.Birthday, error) {
 	var nextBirthday entities.Birthday
 
 	var count int64
 	db.Table("birthdays").Where("group_id", int(chatId)).Count(&count)
 
-	if count==0{
+	if count == 0 {
 		return nil, errors.New("No birthdays for this group")
 	}
 
