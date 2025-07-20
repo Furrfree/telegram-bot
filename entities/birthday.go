@@ -2,13 +2,11 @@ package entities
 
 import (
 	"time"
-
-	"gorm.io/gorm"
 )
 
 type Birthday struct {
-	gorm.Model
-	UserId   int
-	Date     *time.Time
+	UserId   int       `gorm:"primaryKey";autoIncrement:false"`
+	GroupId  int       `gorm:"primaryKey";autoIncrement:false"`
+	Date     time.Time `gorm:"type:DATE;"`
 	Username string
 }

@@ -30,7 +30,9 @@ func main() {
 	// Note: Please keep in mind that default logger may expose sensitive information,
 	// use in development only
 	// (more on configuration in examples/configuration/main.go)
-	bot, err := telego.NewBot(botToken, telego.WithDefaultDebugLogger())
+	//bot, err := telego.NewBot(botToken, telego.WithDefaultDebugLogger())
+	bot, err := telego.NewBot(botToken)
+
 	if err != nil {
 		log.Fatal(err)
 		os.Exit(1)
@@ -63,13 +65,15 @@ func main() {
 		_, _, args := tu.ParseCommand(message.Text)
 		userId := message.From.ID
 		birthdayDate := args[0]
+		groupId := message.Chat.ID
 		format := "16-01-2001"
 		date, _ := time.Parse(format, birthdayDate)
 
 		db.Create(&entities.Birthday{
 			UserId:   int(userId),
 			Username: message.From.Username,
-			Date:     &date,
+			GroupId:  int(groupId),
+			Date:     date,
 		})
 
 		_, _ = ctx.Bot().SendMessage(ctx, tu.Message(
@@ -79,6 +83,60 @@ func main() {
 
 		return nil
 	}, th.CommandEqual("add_cumple"))
+
+	bh.HandleMessage(func(ctx *th.Context, message telego.Message) error {
+		// Send message
+		//groupId := message.Chat.ID
+		var nextCumple entities.Birthday
+		//var result entities.Birthday
+
+		var birthdays []entities.Birthday
+		println("test")
+
+		//date1, _ := time.Parse("11/11/2000", "04/09/1997")
+		date2, _ := time.Parse("02/01/2006", "23/10/2015")
+
+		db.Create(&entities.Birthday{
+			UserId:   1,
+			GroupId:  int(message.Chat.ID),
+			Date:     time.Now(),
+			Username: "test",
+		})
+		db.Create(&entities.Birthday{
+			UserId:   2,
+			GroupId:  int(message.Chat.ID),
+			Date:     date2,
+			Username: "testoo",
+		})
+
+		db.Find(&birthdays)
+
+		for _, x := range birthdays {
+			fmt.Println(x.GroupId, x.UserId, x.Username, x.Date)
+		}
+
+		db.First(&nextCumple)
+		var test entities.Birthday
+		today := time.Now().Format("01-02") // Format as MM-DD
+		db.Raw(`
+    SELECT *
+    FROM birthdays
+    WHERE group_id = ?
+    ORDER BY
+        strftime('%m-%d', date) >= ? DESC,
+        ABS(julianday(date) - julianday('now'))
+    LIMIT 1
+`, 123, today).Scan(&test)
+
+		fmt.Println(test.Date)
+
+		_, _ = ctx.Bot().SendMessage(ctx, tu.Message(
+			tu.ID(message.Chat.ID),
+			fmt.Sprintf("Añadido cumple de @%s el dia %s", message.From.Username, "safd"),
+		).WithReplyParameters(&telego.ReplyParameters{MessageID: message.MessageID}))
+
+		return nil
+	}, th.CommandEqual("next_cumple"))
 
 	bh.Handle(func(ctx *th.Context, update telego.Update) error {
 		// Send message
@@ -90,7 +148,6 @@ func main() {
 	bh.Handle(func(ctx *th.Context, update telego.Update) error {
 		// Send message
 		fmt.Printf("Left member %s", update.Message.LeftChatMember.Username)
-
 		return nil
 	}, LeftMember())
 
