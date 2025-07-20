@@ -85,6 +85,20 @@ func main() {
 		return nil
 	}, th.CommandEqual("next_cumple"))
 
+	bh.HandleMessage(func(ctx *th.Context, message telego.Message) error {
+
+		// TODO: Change to get the replied message id
+		welcomeMessageId := message.MessageID
+		newUser := getNewUserByMessageId(int64(welcomeMessageId))
+
+		bot.ApproveChatJoinRequest(ctx, &telego.ApproveChatJoinRequestParams{
+			ChatID: tu.ID(int64(config.GroupId)),
+			UserID: int64(newUser.UserId),
+		})
+
+		return nil
+	}, th.CommandEqual("admitir"))
+
 	bh.Handle(func(ctx *th.Context, update telego.Update) error {
 		fmt.Printf("New member %s", update.Message.NewChatMembers[0].Username)
 		msg := sendMarkdown(ctx, update.Message.Chat.ID, fmt.Sprintf(`
@@ -106,18 +120,18 @@ func main() {
 		// Send message
 		fmt.Printf("Left member %s", update.Message.LeftChatMember.Username)
 
-		welcomeMessageId := getWelcomeMessageId(update.Message.LeftChatMember.ID)
+		newUser := getNewUserFromUserId(update.Message.LeftChatMember.ID)
 
 		err := ctx.Bot().DeleteMessage(ctx, &telego.DeleteMessageParams{
 			ChatID:    update.Message.Chat.ChatID(),
-			MessageID: welcomeMessageId,
+			MessageID: newUser.WelcomeMessageId,
 		})
 
 		if err != nil {
 			fmt.Println(err)
 		}
 
-		deleteNewUser(welcomeMessageId)
+		deleteNewUser(newUser.UserId)
 
 		return nil
 	}, LeftMember())
@@ -137,8 +151,16 @@ func main() {
 		Scope: tu.ScopeAllGroupChats(),
 	}
 
+	admissionGroupCommands := telego.SetMyCommandsParams{
+		Commands: []telego.BotCommand{
+			{Command: "admitir", Description: "Admite a un usuario"},
+		},
+		Scope: tu.ScopeChatAdministrators(telego.ChatID{ID: int64(config.AdmissionGroupId)}),
+	}
+
 	bot.SetMyCommands(context.Background(), &privateChatCommands)
 	bot.SetMyCommands(context.Background(), &groupCommands)
+	bot.SetMyCommands(context.Background(), &admissionGroupCommands)
 
 	_ = bh.Start()
 }

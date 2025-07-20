@@ -69,12 +69,19 @@ func getNearestBirthday(chatId int64) (*entities.Birthday, error) {
 
 }
 
-func getWelcomeMessageId(userId int64) int {
+func getNewUserFromUserId(userId int64) entities.NewUser {
 
-	var result int
+	var result entities.NewUser
 
-	singleInstance.Table("new_users").Where("user_id=?", int(userId)).Select("welcome_message_id").Scan(&result)
+	singleInstance.Find(&result, "user_id=?", int(userId))
 
+	return result
+
+}
+
+func getNewUserByMessageId(messageId int64) entities.NewUser {
+	var result entities.NewUser
+	singleInstance.Where("message_id=?", int(messageId)).Find(&result)
 	return result
 
 }
