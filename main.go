@@ -8,6 +8,8 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/mymmrac/telego"
+	th "github.com/mymmrac/telego/telegohandler"
+	tu "github.com/mymmrac/telego/telegoutil"
 )
 
 func main() {
@@ -35,21 +37,50 @@ func main() {
 	// (more on configuration in examples/updates_long_polling/main.go)
 	updates, _ := bot.UpdatesViaLongPolling(context.Background(), nil)
 
+	// Create bot handler and specify from where to get updates
+	bh, _ := th.NewBotHandler(bot, updates)
+
+	// Stop handling updates
+	defer func() { _ = bh.Stop() }()
+
+	// Register new handler with match on command `/start`
+	bh.Handle(func(ctx *th.Context, update telego.Update) error {
+		// Send message
+
+		_, _ = ctx.Bot().SendMessage(ctx, tu.Message(
+
+			tu.ID(update.Message.Chat.ID),
+			fmt.Sprintf("Hello %s!", update.Message.From.FirstName),
+		))
+		return nil
+	}, th.CommandEqual("hi"))
+
+	bh.Handle(func(ctx *th.Context, update telego.Update) error {
+		// Send message
+		fmt.Printf("New member %s", update.Message.NewChatMembers[0].Username)
+
+		return nil
+	}, NewMember())
+
+	bh.Handle(func(ctx *th.Context, update telego.Update) error {
+		// Send message
+		fmt.Printf("Left member %s", update.Message.LeftChatMember.Username)
+
+		return nil
+	}, LeftMember())
+
 	// Loop through all updates when they came
-	for update := range updates {
-		if update.Message != nil {
-			//fmt.Printf("New message: %s", update.Message.Text)
-		}
+	// for update := range updates {
+	// 	if update.Message != nil {
+	// 		//fmt.Printf("New message: %s", update.Message.Text)
+	// 	}
 
-		if len(update.Message.NewChatMembers) != 0 {
-			for i, newUser := range update.Message.NewChatMembers {
-				fmt.Printf("New member %d %s", i, newUser.Username)
-			}
-		}
+	// 	if update.Message.LeftChatMember != nil {
+	// 		fmt.Printf("Left member %s", update.Message.LeftChatMember.Username)
+	// 	}
 
-		if update.Message.LeftChatMember != nil {
-			fmt.Printf("Left member %s", update.Message.LeftChatMember.Username)
-		}
-
-	}
+	// }
+	//
+	// // Start handling updates
+	_ = bh.Start()
 }
