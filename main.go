@@ -64,19 +64,13 @@ func main() {
 		re := regexp.MustCompile(`^(0?[1-9]|[0-9]|3)/(0?[1-9]|1[0-2])/((19|20)\d{2})$`)
 
 		if len(args) == 0 {
-			_, _ = ctx.Bot().SendMessage(ctx, tu.Message(
-				tu.ID(message.Chat.ID),
-				"Error: No se ha especificado el cumpleaños",
-			).WithReplyParameters(&telego.ReplyParameters{MessageID: message.MessageID}))
+			reply(ctx, message.Chat.ID, message.MessageID, "Error: No se ha especificado el cumpleaños")
 			return nil
 		}
 
 		birthdayDate := args[0]
 		if !re.MatchString(birthdayDate) {
-			_, _ = ctx.Bot().SendMessage(ctx, tu.Message(
-				tu.ID(message.Chat.ID),
-				"Error: El cumpleaños debe tener formato dd/mm/yyyy",
-			).WithReplyParameters(&telego.ReplyParameters{MessageID: message.MessageID}))
+			reply(ctx, message.Chat.ID, message.MessageID, "Error: El cumpleaños debe tener formato dd/mm/yyyy")
 			return nil
 		}
 
@@ -92,24 +86,18 @@ func main() {
 			Date:     date,
 		})
 
-		_, _ = ctx.Bot().SendMessage(ctx, tu.Message(
-			tu.ID(message.Chat.ID),
-			fmt.Sprintf("Añadido cumple de @%s el dia %s", message.From.Username, birthdayDate),
-		).WithReplyParameters(&telego.ReplyParameters{MessageID: message.MessageID}))
-
+		reply(ctx, message.Chat.ID, message.MessageID, fmt.Sprintf("Añadido cumple de @%s el dia %s", message.From.Username, birthdayDate))
 		return nil
 	}, th.CommandEqual("add_cumple"))
 
 	bh.HandleMessage(func(ctx *th.Context, message telego.Message) error {
-		// Send message
-		var nextBirthday entities.Birthday
-		today := time.Now().Format("01-02") // Format as MM-DD
-		db.Raw("SELECT * FROM birthdays WHERE group_id = ? ORDER BY strftime('%m-%d',date) >= strftime('%m-%d',datetime('now') ) DESC, strftime('%m-%d',date ) ASC LIMIT 1", message.Chat.ID, today).Scan(&nextBirthday)
-		_, _ = ctx.Bot().SendMessage(ctx, tu.Message(
-			tu.ID(message.Chat.ID),
-			fmt.Sprintf("El siguiente cumple es el de @%s el dia %s", message.From.Username, nextBirthday.Date.Format("02/01/2006")),
-		).WithReplyParameters(&telego.ReplyParameters{MessageID: message.MessageID}))
+		nextBirthday, _ := getNearestBirthday(db, message.Chat.ID)
+		if nextBirthday == nil {
+			reply(ctx, message.Chat.ID, message.MessageID, "No hay cumpleaños añadidos")
+			return nil
+		}
 
+		reply(ctx, message.Chat.ID, message.MessageID, fmt.Sprintf("El siguiente cumple es el de @%s el dia %s", message.From.Username, nextBirthday.Date.Format("02/01/2006")))
 		return nil
 	}, th.CommandEqual("next_cumple"))
 
@@ -130,7 +118,7 @@ func main() {
 		Commands: []telego.BotCommand{
 			{Command: "hi", Description: "Hello"},
 		},
-		Scope:        tu.ScopeAllPrivateChats(),
+		Scope: tu.ScopeAllPrivateChats(),
 	}
 
 	groupCommands := telego.SetMyCommandsParams{
@@ -138,7 +126,7 @@ func main() {
 			{Command: "add_cumple", Description: "Añade tu cumpleaños al bot."},
 			{Command: "next_cumple", Description: "Muestra el próximo cumpleaños"},
 		},
-		Scope:        tu.ScopeAllGroupChats(),
+		Scope: tu.ScopeAllGroupChats(),
 	}
 
 	bot.SetMyCommands(context.Background(), &privateChatCommands)
