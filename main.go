@@ -16,7 +16,7 @@ import (
 func main() {
 
 	// Set up DB
-	db := setupDb()
+	initializeDb()
 	err := godotenv.Load()
 
 	if err != nil {
@@ -71,7 +71,6 @@ func main() {
 		}
 		date, _ := time.Parse("02/01/2006", birthdayDate)
 		insertBirthday(
-			db,
 			message.From.ID,
 			message.Chat.ID,
 			date,
@@ -83,7 +82,7 @@ func main() {
 	}, th.CommandEqual("add_cumple"))
 
 	bh.HandleMessage(func(ctx *th.Context, message telego.Message) error {
-		nextBirthday, _ := getNearestBirthday(db, message.Chat.ID)
+		nextBirthday, _ := getNearestBirthday(message.Chat.ID)
 		if nextBirthday == nil {
 			reply(ctx, message.Chat.ID, message.MessageID, "No hay cumpleaños añadidos")
 			return nil
@@ -96,7 +95,7 @@ func main() {
 	bh.Handle(func(ctx *th.Context, update telego.Update) error {
 		fmt.Printf("New member %s", update.Message.NewChatMembers[0].Username)
 		msg := sendMessage(ctx, update.Message.Chat.ID, fmt.Sprintf("Hola @%s", update.Message.NewChatMembers[0].Username))
-		insertNewUser(db, update.Message.NewChatMembers[0].ID, msg.MessageID)
+		insertNewUser(update.Message.NewChatMembers[0].ID, msg.MessageID)
 		return nil
 	}, NewMember())
 
@@ -104,7 +103,7 @@ func main() {
 		// Send message
 		fmt.Printf("Left member %s", update.Message.LeftChatMember.Username)
 
-		welcomeMessageId := getWelcomeMessageId(db, update.Message.LeftChatMember.ID)
+		welcomeMessageId := getWelcomeMessageId(update.Message.LeftChatMember.ID)
 
 		err := ctx.Bot().DeleteMessage(ctx, &telego.DeleteMessageParams{
 			ChatID:    update.Message.Chat.ChatID(),
@@ -115,7 +114,7 @@ func main() {
 			fmt.Println(err)
 		}
 
-		deleteNewUser(db, welcomeMessageId)
+		deleteNewUser(welcomeMessageId)
 
 		return nil
 	}, LeftMember())
