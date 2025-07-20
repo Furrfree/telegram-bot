@@ -17,6 +17,7 @@ func setupDb() *gorm.DB {
 	}
 
 	db.AutoMigrate(&entities.Birthday{})
+	db.AutoMigrate(&entities.NewUser{})
 	return db
 }
 
@@ -27,6 +28,13 @@ func insertBirthday(db *gorm.DB, userId int64, groupId int64, birthday time.Time
 		GroupId:  int(groupId),
 		Date:     birthday,
 		Username: username,
+	})
+}
+
+func insertNewUser(db *gorm.DB, userId int64, welcomeMessageId int) {
+	db.Create(&entities.NewUser{
+		UserId:           int(userId),
+		WelcomeMessageId: welcomeMessageId,
 	})
 }
 
@@ -45,4 +53,18 @@ func getNearestBirthday(db *gorm.DB, chatId int64) (*entities.Birthday, error) {
 
 	return &nextBirthday, nil
 
+}
+
+func getWelcomeMessageId(db *gorm.DB, userId int64) int {
+
+	var result int
+
+	db.Table("new_users").Where("user_id=?", int(userId)).Select("welcome_message_id").Scan(&result)
+
+	return result
+
+}
+
+func deleteNewUser(db *gorm.DB, welcomeMessageId int) {
+	db.Where("welcome_message_id=?", welcomeMessageId).Delete(&entities.NewUser{})
 }

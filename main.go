@@ -97,12 +97,30 @@ func main() {
 		// Send message
 		fmt.Printf("New member %s", update.Message.NewChatMembers[0].Username)
 
+		msg := sendMessage(ctx, update.Message.Chat.ID, fmt.Sprintf("Hola @%s", update.Message.NewChatMembers[0].Username))
+
+		insertNewUser(db, update.Message.NewChatMembers[0].ID, msg.MessageID)
+
 		return nil
 	}, NewMember())
 
 	bh.Handle(func(ctx *th.Context, update telego.Update) error {
 		// Send message
 		fmt.Printf("Left member %s", update.Message.LeftChatMember.Username)
+
+		welcomeMessageId := getWelcomeMessageId(db, update.Message.LeftChatMember.ID)
+
+		err := ctx.Bot().DeleteMessage(ctx, &telego.DeleteMessageParams{
+			ChatID:    update.Message.Chat.ChatID(),
+			MessageID: welcomeMessageId,
+		})
+
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		deleteNewUser(db, welcomeMessageId)
+
 		return nil
 	}, LeftMember())
 
