@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
+	"github.com/furrfree/telegram-bot/entities"
 	"github.com/joho/godotenv"
 	"github.com/mymmrac/telego"
 	th "github.com/mymmrac/telego/telegohandler"
@@ -13,8 +15,9 @@ import (
 )
 
 func main() {
-	// Get Bot token from environment variables
 
+	// Set up DB
+	db := setupDb()
 	err := godotenv.Load()
 
 	if err != nil {
@@ -58,8 +61,16 @@ func main() {
 	bh.HandleMessage(func(ctx *th.Context, message telego.Message) error {
 		// Send message
 		_, _, args := tu.ParseCommand(message.Text)
-
+		userId := message.From.ID
 		birthdayDate := args[0]
+		format := "16-01-2001"
+		date, _ := time.Parse(format, birthdayDate)
+
+		db.Create(&entities.Birthday{
+			UserId:   int(userId),
+			Username: message.From.Username,
+			Date:     &date,
+		})
 
 		_, _ = ctx.Bot().SendMessage(ctx, tu.Message(
 			tu.ID(message.Chat.ID),
