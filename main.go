@@ -27,7 +27,7 @@ func main() {
 	// Note: Please keep in mind that default logger may expose sensitive information,
 	// use in development only
 	// (more on configuration in examples/configuration/main.go)
-	bot, err := telego.NewBot(botToken, telego.WithDefaultDebugLogger())
+	bot, err := telego.NewBot(botToken)
 	if err != nil {
 		log.Fatal(err)
 		os.Exit(1)
@@ -57,6 +57,18 @@ func main() {
 
 	bh.Handle(func(ctx *th.Context, update telego.Update) error {
 		// Send message
+		_, _, args := tu.ParseCommand(update.Message.Text)
+
+		birthdayDate := args[0]
+		_, _ = ctx.Bot().SendMessage(ctx, tu.Message(
+			tu.ID(update.Message.Chat.ID),
+			fmt.Sprintf("Añadido cumple de @%s el dia %s", update.Message.From.Username, birthdayDate),
+		))
+		return nil
+	}, th.CommandEqual("add_cumple"))
+
+	bh.Handle(func(ctx *th.Context, update telego.Update) error {
+		// Send message
 		fmt.Printf("New member %s", update.Message.NewChatMembers[0].Username)
 
 		return nil
@@ -69,18 +81,15 @@ func main() {
 		return nil
 	}, LeftMember())
 
-	// Loop through all updates when they came
-	// for update := range updates {
-	// 	if update.Message != nil {
-	// 		//fmt.Printf("New message: %s", update.Message.Text)
-	// 	}
+	privateChatCommands := telego.SetMyCommandsParams{
+		Commands: []telego.BotCommand{
+			{Command: "Hi", Description: "Hello"},
+		},
+		Scope:        tu.ScopeAllPrivateChats(),
+		LanguageCode: "es",
+	}
 
-	// 	if update.Message.LeftChatMember != nil {
-	// 		fmt.Printf("Left member %s", update.Message.LeftChatMember.Username)
-	// 	}
+	bot.SetMyCommands(context.Background(), &privateChatCommands)
 
-	// }
-	//
-	// // Start handling updates
 	_ = bh.Start()
 }
