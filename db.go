@@ -3,7 +3,7 @@ package main
 import (
 	"errors"
 
-	"github.com/furrfree/telegram-bot/database/entities"
+	"github.com/furrfree/telegram-bot/entities"
 	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 
