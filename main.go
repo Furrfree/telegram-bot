@@ -27,7 +27,7 @@ func main() {
 	// Note: Please keep in mind that default logger may expose sensitive information,
 	// use in development only
 	// (more on configuration in examples/configuration/main.go)
-	bot, err := telego.NewBot(botToken)
+	bot, err := telego.NewBot(botToken, telego.WithDefaultDebugLogger())
 	if err != nil {
 		log.Fatal(err)
 		os.Exit(1)
@@ -55,15 +55,17 @@ func main() {
 		return nil
 	}, th.CommandEqual("hi"))
 
-	bh.Handle(func(ctx *th.Context, update telego.Update) error {
+	bh.HandleMessage(func(ctx *th.Context, message telego.Message) error {
 		// Send message
-		_, _, args := tu.ParseCommand(update.Message.Text)
+		_, _, args := tu.ParseCommand(message.Text)
 
 		birthdayDate := args[0]
+
 		_, _ = ctx.Bot().SendMessage(ctx, tu.Message(
-			tu.ID(update.Message.Chat.ID),
-			fmt.Sprintf("Añadido cumple de @%s el dia %s", update.Message.From.Username, birthdayDate),
-		))
+			tu.ID(message.Chat.ID),
+			fmt.Sprintf("Añadido cumple de @%s el dia %s", message.From.Username, birthdayDate),
+		).WithReplyParameters(&telego.ReplyParameters{MessageID: message.MessageID}))
+
 		return nil
 	}, th.CommandEqual("add_cumple"))
 
