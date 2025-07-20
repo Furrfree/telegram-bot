@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"regexp"
 	"time"
 
 	"github.com/furrfree/telegram-bot/entities"
@@ -26,12 +27,8 @@ func main() {
 
 	botToken := os.Getenv("TOKEN")
 
-	// Create bot and enable debugging info
-	// Note: Please keep in mind that default logger may expose sensitive information,
-	// use in development only
-	// (more on configuration in examples/configuration/main.go)
-	//bot, err := telego.NewBot(botToken, telego.WithDefaultDebugLogger())
-	bot, err := telego.NewBot(botToken)
+	bot, err := telego.NewBot(botToken, telego.WithDefaultDebugLogger())
+	//bot, err := telego.NewBot(botToken)
 
 	if err != nil {
 		log.Fatal(err)
@@ -63,13 +60,32 @@ func main() {
 	bh.HandleMessage(func(ctx *th.Context, message telego.Message) error {
 		// Send message
 		_, _, args := tu.ParseCommand(message.Text)
+
+		re := regexp.MustCompile(`^(0?[1-9]|[0-9]|3)/(0?[1-9]|1[0-2])/((19|20)\d{2})$`)
+
+		if len(args) == 0 {
+			_, _ = ctx.Bot().SendMessage(ctx, tu.Message(
+				tu.ID(message.Chat.ID),
+				"Error: No se ha especificado el cumpleaños",
+			).WithReplyParameters(&telego.ReplyParameters{MessageID: message.MessageID}))
+			return nil
+		}
+
+		if !re.MatchString(args[0]) {
+			_, _ = ctx.Bot().SendMessage(ctx, tu.Message(
+				tu.ID(message.Chat.ID),
+				"Error: El cumpleaños debe tener formato dd/mm/yyyy",
+			).WithReplyParameters(&telego.ReplyParameters{MessageID: message.MessageID}))
+			return nil
+		}
+
 		userId := message.From.ID
 		birthdayDate := args[0]
 		groupId := message.Chat.ID
-		format := "16-01-2001"
+		format := "02/01/2006"
 		date, _ := time.Parse(format, birthdayDate)
 
-		db.Create(&entities.Birthday{
+		insertBirthday(db, &entities.Birthday{
 			UserId:   int(userId),
 			Username: message.From.Username,
 			GroupId:  int(groupId),
@@ -86,53 +102,12 @@ func main() {
 
 	bh.HandleMessage(func(ctx *th.Context, message telego.Message) error {
 		// Send message
-		//groupId := message.Chat.ID
-		var nextCumple entities.Birthday
-		//var result entities.Birthday
-
-		var birthdays []entities.Birthday
-		println("test")
-
-		//date1, _ := time.Parse("11/11/2000", "04/09/1997")
-		date2, _ := time.Parse("02/01/2006", "23/10/2015")
-
-		db.Create(&entities.Birthday{
-			UserId:   1,
-			GroupId:  int(message.Chat.ID),
-			Date:     time.Now(),
-			Username: "test",
-		})
-		db.Create(&entities.Birthday{
-			UserId:   2,
-			GroupId:  int(message.Chat.ID),
-			Date:     date2,
-			Username: "testoo",
-		})
-
-		db.Find(&birthdays)
-
-		for _, x := range birthdays {
-			fmt.Println(x.GroupId, x.UserId, x.Username, x.Date)
-		}
-
-		db.First(&nextCumple)
-		var test entities.Birthday
+		var nextBirthday entities.Birthday
 		today := time.Now().Format("01-02") // Format as MM-DD
-		db.Raw(`
-    SELECT *
-    FROM birthdays
-    WHERE group_id = ?
-    ORDER BY
-        strftime('%m-%d', date) >= ? DESC,
-        ABS(julianday(date) - julianday('now'))
-    LIMIT 1
-`, 123, today).Scan(&test)
-
-		fmt.Println(test.Date)
-
+		db.Raw("SELECT * FROM birthdays WHERE group_id = ? ORDER BY strftime('%m-%d',date) >= strftime('%m-%d',datetime('now') ) DESC, strftime('%m-%d',date ) ASC LIMIT 1", message.Chat.ID, today).Scan(&nextBirthday)
 		_, _ = ctx.Bot().SendMessage(ctx, tu.Message(
 			tu.ID(message.Chat.ID),
-			fmt.Sprintf("Añadido cumple de @%s el dia %s", message.From.Username, "safd"),
+			fmt.Sprintf("El siguiente cumple es el de @%s el dia %s", message.From.Username, nextBirthday.Date.Format("02/01/2006")),
 		).WithReplyParameters(&telego.ReplyParameters{MessageID: message.MessageID}))
 
 		return nil
@@ -159,7 +134,17 @@ func main() {
 		LanguageCode: "es",
 	}
 
+	groupCommands := telego.SetMyCommandsParams{
+		Commands: []telego.BotCommand{
+			{Command: "add_cumple", Description: "Añade tu cumpleaños al bot."},
+			{Command: "next_cumple", Description: "Muestra el próximo cumpleaños"},
+		},
+		Scope:        tu.ScopeAllGroupChats(),
+		LanguageCode: "es",
+	}
+
 	bot.SetMyCommands(context.Background(), &privateChatCommands)
+	bot.SetMyCommands(context.Background(), &groupCommands)
 
 	_ = bh.Start()
 }
