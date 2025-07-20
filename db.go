@@ -3,7 +3,7 @@ package main
 import (
 	"errors"
 
-	"github.com/furrfree/telegram-bot/entities"
+	"github.com/furrfree/telegram-bot/database/entities"
 	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 
@@ -20,15 +20,14 @@ func setupDb() *gorm.DB {
 	return db
 }
 
-func insertBirthday(db *gorm.DB, birthday *entities.Birthday) {
+func insertBirthday(db *gorm.DB, userId int64, groupId int64, birthday time.Time, username string) {
 
 	db.Create(&entities.Birthday{
-		UserId:   birthday.UserId,
-		GroupId:  birthday.GroupId,
-		Date:     birthday.Date,
-		Username: birthday.Username,
+		UserId:   int(userId),
+		GroupId:  int(groupId),
+		Date:     birthday,
+		Username: username,
 	})
-	db.Create(birthday)
 }
 
 func getNearestBirthday(db *gorm.DB, chatId int64) (*entities.Birthday, error) {

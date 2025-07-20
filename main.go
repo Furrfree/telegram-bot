@@ -7,7 +7,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/furrfree/telegram-bot/entities"
 	"github.com/joho/godotenv"
 	"github.com/mymmrac/telego"
 	th "github.com/mymmrac/telego/telegohandler"
@@ -70,18 +69,14 @@ func main() {
 			reply(ctx, message.Chat.ID, message.MessageID, "Error: El cumpleaños debe tener formato dd/mm/yyyy")
 			return nil
 		}
-
-		userId := message.From.ID
-		groupId := message.Chat.ID
-		format := "02/01/2006"
-		date, _ := time.Parse(format, birthdayDate)
-
-		insertBirthday(db, &entities.Birthday{
-			UserId:   int(userId),
-			Username: message.From.Username,
-			GroupId:  int(groupId),
-			Date:     date,
-		})
+		date, _ := time.Parse("02/01/2006", birthdayDate)
+		insertBirthday(
+			db,
+			message.From.ID,
+			message.Chat.ID,
+			date,
+			message.From.Username,
+		)
 
 		reply(ctx, message.Chat.ID, message.MessageID, fmt.Sprintf("Añadido cumple de @%s el dia %s", message.From.Username, birthdayDate))
 		return nil
