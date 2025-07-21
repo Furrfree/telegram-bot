@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/furrfree/telegram-bot/configuration"
@@ -86,9 +87,19 @@ func main() {
 
 	bh.HandleMessage(func(ctx *th.Context, message telego.Message) error {
 
-		// TODO: Change to get the replied message id
-		welcomeMessageId := message.ReplyToMessage.MessageID
-		newUser := service.GetNewUserByMessageId(int64(welcomeMessageId))
+		_, _, args := tu.ParseCommand(message.Text)
+
+		if len(args) == 0 {
+			service.Reply(ctx, message.Chat.ID, message.MessageID, "Error: No se ha especificado el usuario")
+			return nil
+		}
+
+		username := strings.Split(args[0], "@")[1]
+		logger.Log(username)
+
+		newUser := service.GetNewUserByUsername(username)
+
+		service.InsertNewUserMessage(int64(newUser.UserId), int64(message.MessageID))
 
 		if newUser.UserId == 0 {
 			service.SendMessage(ctx, int64(message.Chat.ID), "Error: No hay usuario que admitir")
@@ -104,12 +115,15 @@ func main() {
 			fmt.Println(err)
 			return nil
 		}
-		service.SendMessage(ctx, int64(message.Chat.ID), fmt.Sprintf("Aquí tienes el enlace al grupo %s. Una vez te unas se te echará de este grupo", inviteLink.InviteLink))
+
+		msg := service.SendMessage(ctx, int64(message.Chat.ID), fmt.Sprintf("Aquí tienes el enlace al grupo %s. Una vez te unas se te echará de este grupo", inviteLink.InviteLink))
+		service.InsertNewUserMessage(int64(newUser.UserId), int64(msg.MessageID))
 
 		return nil
 	}, th.CommandEqual("admitir"))
 
 	bh.Handle(func(ctx *th.Context, update telego.Update) error {
+		newMember := update.Message.NewChatMembers[0]
 		fmt.Printf("Admission: New member %s", update.Message.NewChatMembers[0].Username)
 		msg := service.SendMarkdown(ctx, update.Message.Chat.ID, fmt.Sprintf(`
 			¡Bienvenido/a, %s PARA ENTRAR:
@@ -122,7 +136,8 @@ func main() {
 			update.Message.NewChatMembers[0].Username,
 			config.RulesMessageUrl,
 			config.PresentationTemplateMessageUrl))
-		service.InsertNewUser(update.Message.NewChatMembers[0].ID, msg.MessageID)
+		service.InsertNewUser(newMember.ID, newMember.Username, msg.MessageID)
+		service.InsertNewUserMessage(newMember.ID, int64(msg.MessageID))
 		return nil
 	}, service.NewMember(config.AdmissionGroupId))
 
@@ -158,10 +173,14 @@ func main() {
 		fmt.Printf("Left member %s", update.Message.LeftChatMember.Username)
 
 		newUser := service.GetNewUserFromUserId(update.Message.LeftChatMember.ID)
+		var messageIds []int
 
-		err := ctx.Bot().DeleteMessage(ctx, &telego.DeleteMessageParams{
-			ChatID:    update.Message.Chat.ChatID(),
-			MessageID: newUser.WelcomeMessageId,
+		for _, x := range service.GetNewUserFromUserId(int64(newUser.UserId)).Messages {
+			messageIds = append(messageIds, int(x))
+		}
+		err := bot.DeleteMessages(ctx, &telego.DeleteMessagesParams{
+			ChatID:     tu.ID(int64(config.AdmissionGroupId)),
+			MessageIDs: messageIds,
 		})
 
 		if err != nil {
@@ -171,7 +190,7 @@ func main() {
 		service.DeleteNewUser(newUser.UserId)
 
 		return nil
-	}, service.LeftMember())
+	}, service.LeftMember(config.AdmissionGroupId))
 
 	privateChatCommands := telego.SetMyCommandsParams{
 		Commands: []telego.BotCommand{

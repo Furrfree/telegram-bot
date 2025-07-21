@@ -4,8 +4,10 @@ import (
 	"errors"
 	"sync"
 
+	"github.com/furrfree/telegram-bot/logger"
 	"github.com/furrfree/telegram-bot/model"
 	"github.com/glebarez/sqlite"
+	"github.com/lib/pq"
 	"gorm.io/gorm"
 
 	"time"
@@ -45,11 +47,20 @@ func InsertBirthday(userId int64, groupId int64, birthday time.Time, username st
 	})
 }
 
-func InsertNewUser(userId int64, welcomeMessageId int) {
+func InsertNewUser(userId int64, username string, welcomeMessageId int) {
 	singleInstance.Create(&model.NewUser{
-		UserId:           int(userId),
-		WelcomeMessageId: welcomeMessageId,
+		UserId:   int(userId),
+		Username: username,
+		Messages: pq.Int64Array{},
 	})
+}
+
+func InsertNewUserMessage(userId int64, messageId int64) {
+	var newUser model.NewUser
+	singleInstance.Find(&newUser, "user_id=?", int(userId))
+	newUser.Messages = append(newUser.Messages, messageId)
+	singleInstance.Save(newUser)
+
 }
 
 func GetNearestBirthday(chatId int64) (*model.Birthday, error) {
@@ -79,13 +90,14 @@ func GetNewUserFromUserId(userId int64) model.NewUser {
 
 }
 
-func GetNewUserByMessageId(messageId int64) model.NewUser {
+func GetNewUserByUsername(username string) model.NewUser {
 	var result model.NewUser
-	singleInstance.Where("welcome_message_id=?", int(messageId)).Find(&result)
+	singleInstance.Where("username = ?", username).Find(&result)
+	logger.Log(result)
 	return result
 
 }
 
 func DeleteNewUser(newUserId int) {
-	singleInstance.Where("new_user_id=?", newUserId).Delete(&model.NewUser{})
+	singleInstance.Where("user_id=?", newUserId).Delete(&model.NewUser{})
 }

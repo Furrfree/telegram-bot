@@ -14,8 +14,8 @@ func NewMember(chatId int) telegohandler.Predicate {
 	}
 }
 
-func LeftMember() telegohandler.Predicate {
+func LeftMember(chatId int) telegohandler.Predicate {
 	return func(ctx context.Context, update telego.Update) bool {
-		return update.Message.LeftChatMember != nil
+		return update.Message.LeftChatMember != nil && update.Message.Chat.ChatID() == telegoutil.ID(int64(chatId))
 	}
 }
