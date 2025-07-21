@@ -32,12 +32,12 @@ func newMemberAdmissionGroup(bh *th.BotHandler) {
 			- Una vez os leamos seréis admitidos y entraréis en el grupo. Cuando entréis abandonad el grupo de admisión, por favor. Un saludo! 💜🐺
 			`,
 			update.Message.NewChatMembers[0].Username,
-			configuration.ConfigInstance.RulesMessageUrl,
-			configuration.ConfigInstance.PresentationTemplateMessageUrl))
+			configuration.Conf.RulesMessageUrl,
+			configuration.Conf.PresentationTemplateMessageUrl))
 		service.InsertNewUser(newMember.ID, newMember.Username, msg.MessageID)
 		service.InsertNewUserMessage(newMember.ID, int64(msg.MessageID))
 		return nil
-	}, utils.NewMember(configuration.ConfigInstance.AdmissionGroupId))
+	}, utils.NewMember(configuration.Conf.AdmissionGroupId))
 }
 
 func newGroupMember(bh *th.BotHandler, bot *telego.Bot) {
@@ -46,7 +46,7 @@ func newGroupMember(bh *th.BotHandler, bot *telego.Bot) {
 		fmt.Printf("Group: New member %s", newUser.Username)
 
 		banError := bot.BanChatMember(ctx, &telego.BanChatMemberParams{
-			ChatID: tu.ID(int64(configuration.ConfigInstance.AdmissionGroupId)),
+			ChatID: tu.ID(int64(configuration.Conf.AdmissionGroupId)),
 			UserID: newUser.ID,
 		})
 
@@ -56,7 +56,7 @@ func newGroupMember(bh *th.BotHandler, bot *telego.Bot) {
 		}
 
 		unbanError := bot.UnbanChatMember(ctx, &telego.UnbanChatMemberParams{
-			ChatID: tu.ID(int64(configuration.ConfigInstance.AdmissionGroupId)),
+			ChatID: tu.ID(int64(configuration.Conf.AdmissionGroupId)),
 			UserID: newUser.ID,
 		})
 
@@ -66,7 +66,7 @@ func newGroupMember(bh *th.BotHandler, bot *telego.Bot) {
 		}
 
 		return nil
-	}, utils.NewMember(configuration.ConfigInstance.GroupId))
+	}, utils.NewMember(configuration.Conf.GroupId))
 }
 
 func leaveAdmissionGroup(bh *th.BotHandler, bot *telego.Bot) {
@@ -81,7 +81,7 @@ func leaveAdmissionGroup(bh *th.BotHandler, bot *telego.Bot) {
 			messageIds = append(messageIds, int(x))
 		}
 		err := bot.DeleteMessages(ctx, &telego.DeleteMessagesParams{
-			ChatID:     tu.ID(int64(configuration.ConfigInstance.AdmissionGroupId)),
+			ChatID:     tu.ID(int64(configuration.Conf.AdmissionGroupId)),
 			MessageIDs: messageIds,
 		})
 
@@ -92,5 +92,5 @@ func leaveAdmissionGroup(bh *th.BotHandler, bot *telego.Bot) {
 		service.DeleteNewUser(newUser.UserId)
 
 		return nil
-	}, utils.LeftMember(configuration.ConfigInstance.AdmissionGroupId))
+	}, utils.LeftMember(configuration.Conf.AdmissionGroupId))
 }

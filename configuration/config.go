@@ -19,14 +19,14 @@ type Config struct {
 
 var lock = &sync.Mutex{}
 
-var ConfigInstance *Config
+var Conf *Config
 
 func InitializeConfig() {
-	if ConfigInstance == nil {
+	if Conf == nil {
 		lock.Lock()
 		defer lock.Unlock()
-		if ConfigInstance == nil {
-			ConfigInstance = GetConfig()
+		if Conf == nil {
+			Conf = GetConfig()
 		}
 	}
 }

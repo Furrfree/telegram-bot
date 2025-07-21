@@ -35,7 +35,7 @@ func admitir(bh *th.BotHandler, bot *telego.Bot) {
 		}
 
 		inviteLink, err := bot.CreateChatInviteLink(ctx, &telego.CreateChatInviteLinkParams{
-			ChatID:      tu.ID(int64(configuration.ConfigInstance.GroupId)),
+			ChatID:      tu.ID(int64(configuration.Conf.GroupId)),
 			MemberLimit: 1,
 		})
 

@@ -17,7 +17,7 @@ func main() {
 	configuration.InitializeConfig()
 
 	//bot, botErr := telego.NewBot(botToken, telego.WithDefaultDebugLogger())
-	bot, botErr := telego.NewBot(configuration.ConfigInstance.Token)
+	bot, botErr := telego.NewBot(configuration.Conf.Token)
 
 	if botErr != nil {
 		logger.Fatal(botErr)
@@ -36,7 +36,6 @@ func main() {
 	handlers.AddHandlers(bh, bot)
 
 	logger.Log("Bot started")
-	logger.Warning("test")
 	bh.Start()
 
 }
