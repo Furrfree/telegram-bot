@@ -3,6 +3,7 @@ package configuration
 import (
 	"os"
 	"strconv"
+	"sync"
 
 	"github.com/furrfree/telegram-bot/logger"
 	"github.com/joho/godotenv"
@@ -14,6 +15,20 @@ type Config struct {
 	GroupId                        int
 	RulesMessageUrl                string
 	PresentationTemplateMessageUrl string
+}
+
+var lock = &sync.Mutex{}
+
+var ConfigInstance *Config
+
+func InitializeConfig() {
+	if ConfigInstance == nil {
+		lock.Lock()
+		defer lock.Unlock()
+		if ConfigInstance == nil {
+			ConfigInstance = GetConfig()
+		}
+	}
 }
 
 func getIntEnvVariable(name string) int {
@@ -39,13 +54,13 @@ func getStringEnvVariable(name string) string {
 	return envVar
 }
 
-func GetConfig() Config {
+func GetConfig() *Config {
 	err := godotenv.Load()
 	if err != nil {
 		logger.Error("Error loading .env file")
 	}
 
-	return Config{
+	return &Config{
 		Token:                          getStringEnvVariable("TOKEN"),
 		AdmissionGroupId:               getIntEnvVariable("ADMISSION_GROUP_ID"),
 		GroupId:                        getIntEnvVariable("GROUP_ID"),
