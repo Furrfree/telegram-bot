@@ -13,19 +13,17 @@ import (
 )
 
 func main() {
-	// Set up DB
 	database.InitializeDb()
 	configuration.InitializeConfig()
 
-	//bot, err := telego.NewBot(botToken, telego.WithDefaultDebugLogger())
-	bot, err := telego.NewBot(configuration.ConfigInstance.Token)
+	//bot, botErr := telego.NewBot(botToken, telego.WithDefaultDebugLogger())
+	bot, botErr := telego.NewBot(configuration.ConfigInstance.Token)
 
-	if err != nil {
-		logger.Fatal(err)
+	if botErr != nil {
+		logger.Fatal(botErr)
 	}
 
 	// Get updates channel
-	// (more on configuration in examples/updates_long_polling/main.go)
 	updates, _ := bot.UpdatesViaLongPolling(context.Background(), nil)
 
 	// Create bot handler and specify from where to get updates
@@ -37,5 +35,8 @@ func main() {
 	commands.AddCommands(bh, bot)
 	handlers.AddHandlers(bh, bot)
 
-	_ = bh.Start()
+	logger.Log("Bot started")
+	logger.Warning("test")
+	bh.Start()
+
 }

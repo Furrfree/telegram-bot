@@ -3,10 +3,12 @@ package logger
 import (
 	"fmt"
 	"os"
+	"time"
 )
 
 func Log(msgs ...any) {
-	fmt.Println(msgs...)
+	output := fmt.Sprintf("%s %s", time.Now().Format("2006-01-02 15:04:05"), msgs)
+	fmt.Println(output)
 }
 
 func Fatal(msgs ...any) {
