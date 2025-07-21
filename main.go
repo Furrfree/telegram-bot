@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/furrfree/telegram-bot/configuration"
 	"github.com/furrfree/telegram-bot/logger"
 	"github.com/furrfree/telegram-bot/service"
 	"github.com/mymmrac/telego"
@@ -15,7 +16,7 @@ import (
 func main() {
 	// Set up DB
 	service.InitializeDb()
-	config := service.GetConfig()
+	config := configuration.GetConfig()
 
 	//bot, err := telego.NewBot(botToken, telego.WithDefaultDebugLogger())
 	bot, err := telego.NewBot(config.Token)
