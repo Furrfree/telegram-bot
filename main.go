@@ -7,8 +7,10 @@ import (
 	"time"
 
 	"github.com/furrfree/telegram-bot/configuration"
+	"github.com/furrfree/telegram-bot/database"
 	"github.com/furrfree/telegram-bot/logger"
 	"github.com/furrfree/telegram-bot/service"
+	"github.com/furrfree/telegram-bot/utils"
 	"github.com/mymmrac/telego"
 	th "github.com/mymmrac/telego/telegohandler"
 	tu "github.com/mymmrac/telego/telegoutil"
@@ -16,7 +18,7 @@ import (
 
 func main() {
 	// Set up DB
-	service.InitializeDb()
+	database.InitializeDb()
 	config := configuration.GetConfig()
 
 	//bot, err := telego.NewBot(botToken, telego.WithDefaultDebugLogger())
@@ -53,13 +55,13 @@ func main() {
 		_, _, args := tu.ParseCommand(message.Text)
 
 		if len(args) == 0 {
-			service.Reply(ctx, message.Chat.ID, message.MessageID, "Error: No se ha especificado el cumpleaños")
+			utils.Reply(ctx, message.Chat.ID, message.MessageID, "Error: No se ha especificado el cumpleaños")
 			return nil
 		}
 
 		birthdayDate := args[0]
-		if !service.IsDateValid(birthdayDate) {
-			service.Reply(ctx, message.Chat.ID, message.MessageID, "Error: El cumpleaños debe tener formato dd/mm/yyyy")
+		if !utils.IsDateValid(birthdayDate) {
+			utils.Reply(ctx, message.Chat.ID, message.MessageID, "Error: El cumpleaños debe tener formato dd/mm/yyyy")
 			return nil
 		}
 		date, _ := time.Parse("02/01/2006", birthdayDate)
@@ -70,18 +72,18 @@ func main() {
 			message.From.Username,
 		)
 
-		service.Reply(ctx, message.Chat.ID, message.MessageID, fmt.Sprintf("Añadido cumple de @%s el dia %s", message.From.Username, birthdayDate))
+		utils.Reply(ctx, message.Chat.ID, message.MessageID, fmt.Sprintf("Añadido cumple de @%s el dia %s", message.From.Username, birthdayDate))
 		return nil
 	}, th.CommandEqual("add_cumple"))
 
 	bh.HandleMessage(func(ctx *th.Context, message telego.Message) error {
 		nextBirthday, _ := service.GetNearestBirthday(message.Chat.ID)
 		if nextBirthday == nil {
-			service.Reply(ctx, message.Chat.ID, message.MessageID, "No hay cumpleaños añadidos")
+			utils.Reply(ctx, message.Chat.ID, message.MessageID, "No hay cumpleaños añadidos")
 			return nil
 		}
 
-		service.Reply(ctx, message.Chat.ID, message.MessageID, fmt.Sprintf("El siguiente cumple es el de @%s el dia %s", message.From.Username, nextBirthday.Date.Format("02/01/2006")))
+		utils.Reply(ctx, message.Chat.ID, message.MessageID, fmt.Sprintf("El siguiente cumple es el de @%s el dia %s", message.From.Username, nextBirthday.Date.Format("02/01/2006")))
 		return nil
 	}, th.CommandEqual("next_cumple"))
 
@@ -90,7 +92,7 @@ func main() {
 		_, _, args := tu.ParseCommand(message.Text)
 
 		if len(args) == 0 {
-			service.Reply(ctx, message.Chat.ID, message.MessageID, "Error: No se ha especificado el usuario")
+			utils.Reply(ctx, message.Chat.ID, message.MessageID, "Error: No se ha especificado el usuario")
 			return nil
 		}
 
@@ -102,7 +104,7 @@ func main() {
 		service.InsertNewUserMessage(int64(newUser.UserId), int64(message.MessageID))
 
 		if newUser.UserId == 0 {
-			service.SendMessage(ctx, int64(message.Chat.ID), "Error: No hay usuario que admitir")
+			utils.SendMessage(ctx, int64(message.Chat.ID), "Error: No hay usuario que admitir")
 			return nil
 		}
 
@@ -116,7 +118,7 @@ func main() {
 			return nil
 		}
 
-		msg := service.SendMessage(ctx, int64(message.Chat.ID), fmt.Sprintf("Aquí tienes el enlace al grupo %s. Una vez te unas se te echará de este grupo", inviteLink.InviteLink))
+		msg := utils.SendMessage(ctx, int64(message.Chat.ID), fmt.Sprintf("Aquí tienes el enlace al grupo %s. Una vez te unas se te echará de este grupo", inviteLink.InviteLink))
 		service.InsertNewUserMessage(int64(newUser.UserId), int64(msg.MessageID))
 
 		return nil
@@ -125,7 +127,7 @@ func main() {
 	bh.Handle(func(ctx *th.Context, update telego.Update) error {
 		newMember := update.Message.NewChatMembers[0]
 		fmt.Printf("Admission: New member %s", update.Message.NewChatMembers[0].Username)
-		msg := service.SendMarkdown(ctx, update.Message.Chat.ID, fmt.Sprintf(`
+		msg := utils.SendMarkdown(ctx, update.Message.Chat.ID, fmt.Sprintf(`
 			¡Bienvenido/a, %s PARA ENTRAR:
 			- Leer las [normas](%s) (y estar de acuerdo con ellas)
 			- Ser mayor de edad: por las nuevas políticas de Telegram no podemos aceptar a personas menores de 18 años.
@@ -139,7 +141,7 @@ func main() {
 		service.InsertNewUser(newMember.ID, newMember.Username, msg.MessageID)
 		service.InsertNewUserMessage(newMember.ID, int64(msg.MessageID))
 		return nil
-	}, service.NewMember(config.AdmissionGroupId))
+	}, utils.NewMember(config.AdmissionGroupId))
 
 	bh.Handle(func(ctx *th.Context, update telego.Update) error {
 		newUser := update.Message.NewChatMembers[0]
@@ -166,7 +168,7 @@ func main() {
 		}
 
 		return nil
-	}, service.NewMember(config.GroupId))
+	}, utils.NewMember(config.GroupId))
 
 	bh.Handle(func(ctx *th.Context, update telego.Update) error {
 		// Send message
@@ -190,7 +192,7 @@ func main() {
 		service.DeleteNewUser(newUser.UserId)
 
 		return nil
-	}, service.LeftMember(config.AdmissionGroupId))
+	}, utils.LeftMember(config.AdmissionGroupId))
 
 	privateChatCommands := telego.SetMyCommandsParams{
 		Commands: []telego.BotCommand{
