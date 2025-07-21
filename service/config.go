@@ -1,10 +1,10 @@
 package service
 
 import (
-	"log"
 	"os"
 	"strconv"
 
+	"github.com/furrfree/telegram-bot/logger"
 	"github.com/joho/godotenv"
 )
 
@@ -19,12 +19,12 @@ type Config struct {
 func getIntEnvVariable(name string) int {
 	envVar := os.Getenv(name)
 	if envVar == "" {
-		log.Fatalf("Env variable %s required", name)
+		logger.Error("Env variable %s required", name)
 	}
 
 	intValue, err := strconv.Atoi(envVar)
 	if err != nil {
-		log.Fatalf("Env variable %s must be integer", name)
+		logger.Error("Env variable %s must be integer", name)
 	}
 
 	return intValue
@@ -33,7 +33,7 @@ func getIntEnvVariable(name string) int {
 func getStringEnvVariable(name string) string {
 	envVar := os.Getenv(name)
 	if envVar == "" {
-		log.Fatalf("Env variable %s required", name)
+		logger.Error("Env variable %s required", name)
 	}
 
 	return envVar
@@ -42,7 +42,7 @@ func getStringEnvVariable(name string) string {
 func GetConfig() Config {
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		logger.Error("Error loading .env file")
 	}
 
 	return Config{

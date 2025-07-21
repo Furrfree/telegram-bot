@@ -3,10 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
-	"os"
 	"time"
 
+	"github.com/furrfree/telegram-bot/logger"
 	"github.com/furrfree/telegram-bot/service"
 	"github.com/mymmrac/telego"
 	th "github.com/mymmrac/telego/telegohandler"
@@ -22,8 +21,7 @@ func main() {
 	bot, err := telego.NewBot(config.Token)
 
 	if err != nil {
-		log.Fatal(err)
-		os.Exit(1)
+		logger.Fatal(err)
 	}
 
 	// Get updates channel
@@ -89,15 +87,12 @@ func main() {
 
 		// TODO: Change to get the replied message id
 		welcomeMessageId := message.ReplyToMessage.MessageID
-		fmt.Println(welcomeMessageId)
 		newUser := service.GetNewUserByMessageId(int64(welcomeMessageId))
 
 		if newUser.UserId == 0 {
 			service.SendMessage(ctx, int64(message.Chat.ID), "Error: No hay usuario que admitir")
 			return nil
 		}
-
-		fmt.Println(newUser)
 
 		inviteLink, err := bot.CreateChatInviteLink(ctx, &telego.CreateChatInviteLinkParams{
 			ChatID:      tu.ID(int64(config.GroupId)),
@@ -140,7 +135,7 @@ func main() {
 		})
 
 		if banError != nil {
-			fmt.Println(banError)
+			logger.Error(banError)
 			return nil
 		}
 
@@ -150,7 +145,7 @@ func main() {
 		})
 
 		if unbanError != nil {
-			fmt.Println(banError)
+			logger.Error(unbanError)
 			return nil
 		}
 
@@ -169,7 +164,7 @@ func main() {
 		})
 
 		if err != nil {
-			fmt.Println(err)
+			logger.Error(err)
 		}
 
 		service.DeleteNewUser(newUser.UserId)
