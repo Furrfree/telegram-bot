@@ -1,4 +1,4 @@
-package main
+package service
 
 import (
 	"time"
@@ -8,14 +8,14 @@ import (
 	tu "github.com/mymmrac/telego/telegoutil"
 )
 
-func reply(ctx *th.Context, chatId int64, replyTo int, text string) {
+func Reply(ctx *th.Context, chatId int64, replyTo int, text string) {
 	_, _ = ctx.Bot().SendMessage(ctx, tu.Message(
 		tu.ID(chatId),
 		text,
 	).WithReplyParameters(&telego.ReplyParameters{MessageID: replyTo}))
 }
 
-func sendMessage(ctx *th.Context, chatId int64, text string) *telego.Message {
+func SendMessage(ctx *th.Context, chatId int64, text string) *telego.Message {
 	msg, _ := ctx.Bot().SendMessage(ctx, tu.Message(
 		tu.ID(chatId),
 		text,
@@ -23,7 +23,7 @@ func sendMessage(ctx *th.Context, chatId int64, text string) *telego.Message {
 	return msg
 }
 
-func sendMarkdown(ctx *th.Context, chatId int64, text string) *telego.Message {
+func SendMarkdown(ctx *th.Context, chatId int64, text string) *telego.Message {
 	msg, _ := ctx.Bot().SendMessage(ctx, tu.Message(
 		tu.ID(chatId),
 		text,
@@ -31,7 +31,7 @@ func sendMarkdown(ctx *th.Context, chatId int64, text string) *telego.Message {
 	return msg
 }
 
-func isDateValid(dateString string) bool {
+func IsDateValid(dateString string) bool {
 	_, err := time.Parse("02/01/2006", dateString)
 	return err == nil
 }

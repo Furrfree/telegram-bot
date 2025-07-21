@@ -1,4 +1,4 @@
-package main
+package service
 
 import (
 	"log"
@@ -39,7 +39,7 @@ func getStringEnvVariable(name string) string {
 	return envVar
 }
 
-func getConfig() Config {
+func GetConfig() Config {
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")

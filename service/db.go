@@ -1,10 +1,10 @@
-package main
+package service
 
 import (
 	"errors"
 	"sync"
 
-	"github.com/furrfree/telegram-bot/entities"
+	"github.com/furrfree/telegram-bot/model"
 	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 
@@ -15,7 +15,7 @@ var lock = &sync.Mutex{}
 
 var singleInstance *gorm.DB
 
-func initializeDb() {
+func InitializeDb() {
 	if singleInstance == nil {
 		lock.Lock()
 		defer lock.Unlock()
@@ -32,12 +32,12 @@ func setupDb() {
 		panic("failed to connect database")
 	}
 
-	singleInstance.AutoMigrate(&entities.Birthday{})
-	singleInstance.AutoMigrate(&entities.NewUser{})
+	singleInstance.AutoMigrate(&model.Birthday{})
+	singleInstance.AutoMigrate(&model.NewUser{})
 }
 
-func insertBirthday(userId int64, groupId int64, birthday time.Time, username string) {
-	singleInstance.Create(&entities.Birthday{
+func InsertBirthday(userId int64, groupId int64, birthday time.Time, username string) {
+	singleInstance.Create(&model.Birthday{
 		UserId:   int(userId),
 		GroupId:  int(groupId),
 		Date:     birthday,
@@ -45,15 +45,15 @@ func insertBirthday(userId int64, groupId int64, birthday time.Time, username st
 	})
 }
 
-func insertNewUser(userId int64, welcomeMessageId int) {
-	singleInstance.Create(&entities.NewUser{
+func InsertNewUser(userId int64, welcomeMessageId int) {
+	singleInstance.Create(&model.NewUser{
 		UserId:           int(userId),
 		WelcomeMessageId: welcomeMessageId,
 	})
 }
 
-func getNearestBirthday(chatId int64) (*entities.Birthday, error) {
-	var nextBirthday entities.Birthday
+func GetNearestBirthday(chatId int64) (*model.Birthday, error) {
+	var nextBirthday model.Birthday
 
 	var count int64
 	singleInstance.Table("birthdays").Where("group_id", int(chatId)).Count(&count)
@@ -69,9 +69,9 @@ func getNearestBirthday(chatId int64) (*entities.Birthday, error) {
 
 }
 
-func getNewUserFromUserId(userId int64) entities.NewUser {
+func GetNewUserFromUserId(userId int64) model.NewUser {
 
-	var result entities.NewUser
+	var result model.NewUser
 
 	singleInstance.Find(&result, "user_id=?", int(userId))
 
@@ -79,13 +79,13 @@ func getNewUserFromUserId(userId int64) entities.NewUser {
 
 }
 
-func getNewUserByMessageId(messageId int64) entities.NewUser {
-	var result entities.NewUser
+func GetNewUserByMessageId(messageId int64) model.NewUser {
+	var result model.NewUser
 	singleInstance.Where("message_id=?", int(messageId)).Find(&result)
 	return result
 
 }
 
-func deleteNewUser(welcomeMessageId int) {
-	singleInstance.Where("welcome_message_id=?", welcomeMessageId).Delete(&entities.NewUser{})
+func DeleteNewUser(welcomeMessageId int) {
+	singleInstance.Where("welcome_message_id=?", welcomeMessageId).Delete(&model.NewUser{})
 }

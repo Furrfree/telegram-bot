@@ -7,15 +7,15 @@ import (
 	"os"
 	"time"
 
+	"github.com/furrfree/telegram-bot/service"
 	"github.com/mymmrac/telego"
 	th "github.com/mymmrac/telego/telegohandler"
 	tu "github.com/mymmrac/telego/telegoutil"
 )
 
 func main() {
-
 	// Set up DB
-	initializeDb()
+	service.InitializeDb()
 	config := getConfig()
 
 	//bot, err := telego.NewBot(botToken, telego.WithDefaultDebugLogger())
@@ -63,7 +63,7 @@ func main() {
 			return nil
 		}
 		date, _ := time.Parse("02/01/2006", birthdayDate)
-		insertBirthday(
+		service.InsertBirthday(
 			message.From.ID,
 			message.Chat.ID,
 			date,
@@ -75,7 +75,7 @@ func main() {
 	}, th.CommandEqual("add_cumple"))
 
 	bh.HandleMessage(func(ctx *th.Context, message telego.Message) error {
-		nextBirthday, _ := getNearestBirthday(message.Chat.ID)
+		nextBirthday, _ := service.GetNearestBirthday(message.Chat.ID)
 		if nextBirthday == nil {
 			reply(ctx, message.Chat.ID, message.MessageID, "No hay cumpleaños añadidos")
 			return nil
@@ -89,7 +89,7 @@ func main() {
 
 		// TODO: Change to get the replied message id
 		welcomeMessageId := message.MessageID
-		newUser := getNewUserByMessageId(int64(welcomeMessageId))
+		newUser := service.GetNewUserByMessageId(int64(welcomeMessageId))
 
 		bot.ApproveChatJoinRequest(ctx, &telego.ApproveChatJoinRequestParams{
 			ChatID: tu.ID(int64(config.GroupId)),
@@ -112,7 +112,7 @@ func main() {
 			update.Message.NewChatMembers[0].Username,
 			config.RulesMessageUrl,
 			config.PresentationTemplateMessageUrl))
-		insertNewUser(update.Message.NewChatMembers[0].ID, msg.MessageID)
+		service.InsertNewUser(update.Message.NewChatMembers[0].ID, msg.MessageID)
 		return nil
 	}, NewMember())
 
@@ -120,7 +120,7 @@ func main() {
 		// Send message
 		fmt.Printf("Left member %s", update.Message.LeftChatMember.Username)
 
-		newUser := getNewUserFromUserId(update.Message.LeftChatMember.ID)
+		newUser := service.GetNewUserFromUserId(update.Message.LeftChatMember.ID)
 
 		err := ctx.Bot().DeleteMessage(ctx, &telego.DeleteMessageParams{
 			ChatID:    update.Message.Chat.ChatID(),
@@ -131,7 +131,7 @@ func main() {
 			fmt.Println(err)
 		}
 
-		deleteNewUser(newUser.UserId)
+		service.DeleteNewUser(newUser.UserId)
 
 		return nil
 	}, LeftMember())
