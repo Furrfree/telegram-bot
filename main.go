@@ -16,7 +16,7 @@ import (
 func main() {
 	// Set up DB
 	service.InitializeDb()
-	config := getConfig()
+	config := service.GetConfig()
 
 	//bot, err := telego.NewBot(botToken, telego.WithDefaultDebugLogger())
 	bot, err := telego.NewBot(config.Token)
@@ -53,13 +53,13 @@ func main() {
 		_, _, args := tu.ParseCommand(message.Text)
 
 		if len(args) == 0 {
-			reply(ctx, message.Chat.ID, message.MessageID, "Error: No se ha especificado el cumpleaños")
+			service.Reply(ctx, message.Chat.ID, message.MessageID, "Error: No se ha especificado el cumpleaños")
 			return nil
 		}
 
 		birthdayDate := args[0]
-		if !isDateValid(birthdayDate) {
-			reply(ctx, message.Chat.ID, message.MessageID, "Error: El cumpleaños debe tener formato dd/mm/yyyy")
+		if !service.IsDateValid(birthdayDate) {
+			service.Reply(ctx, message.Chat.ID, message.MessageID, "Error: El cumpleaños debe tener formato dd/mm/yyyy")
 			return nil
 		}
 		date, _ := time.Parse("02/01/2006", birthdayDate)
@@ -70,38 +70,52 @@ func main() {
 			message.From.Username,
 		)
 
-		reply(ctx, message.Chat.ID, message.MessageID, fmt.Sprintf("Añadido cumple de @%s el dia %s", message.From.Username, birthdayDate))
+		service.Reply(ctx, message.Chat.ID, message.MessageID, fmt.Sprintf("Añadido cumple de @%s el dia %s", message.From.Username, birthdayDate))
 		return nil
 	}, th.CommandEqual("add_cumple"))
 
 	bh.HandleMessage(func(ctx *th.Context, message telego.Message) error {
 		nextBirthday, _ := service.GetNearestBirthday(message.Chat.ID)
 		if nextBirthday == nil {
-			reply(ctx, message.Chat.ID, message.MessageID, "No hay cumpleaños añadidos")
+			service.Reply(ctx, message.Chat.ID, message.MessageID, "No hay cumpleaños añadidos")
 			return nil
 		}
 
-		reply(ctx, message.Chat.ID, message.MessageID, fmt.Sprintf("El siguiente cumple es el de @%s el dia %s", message.From.Username, nextBirthday.Date.Format("02/01/2006")))
+		service.Reply(ctx, message.Chat.ID, message.MessageID, fmt.Sprintf("El siguiente cumple es el de @%s el dia %s", message.From.Username, nextBirthday.Date.Format("02/01/2006")))
 		return nil
 	}, th.CommandEqual("next_cumple"))
 
 	bh.HandleMessage(func(ctx *th.Context, message telego.Message) error {
 
 		// TODO: Change to get the replied message id
-		welcomeMessageId := message.MessageID
+		welcomeMessageId := message.ReplyToMessage.MessageID
+		fmt.Println(welcomeMessageId)
 		newUser := service.GetNewUserByMessageId(int64(welcomeMessageId))
 
-		bot.ApproveChatJoinRequest(ctx, &telego.ApproveChatJoinRequestParams{
-			ChatID: tu.ID(int64(config.GroupId)),
-			UserID: int64(newUser.UserId),
+		if newUser.UserId == 0 {
+			service.SendMessage(ctx, int64(message.Chat.ID), "Error: No hay usuario que admitir")
+			return nil
+		}
+
+		fmt.Println(newUser)
+
+		inviteLink, err := bot.CreateChatInviteLink(ctx, &telego.CreateChatInviteLinkParams{
+			ChatID:      tu.ID(int64(config.GroupId)),
+			MemberLimit: 1,
 		})
+
+		if err != nil {
+			fmt.Println(err)
+			return nil
+		}
+		service.SendMessage(ctx, int64(message.Chat.ID), fmt.Sprintf("Aquí tienes el enlace al grupo %s. Una vez te unas se te echará de este grupo", inviteLink.InviteLink))
 
 		return nil
 	}, th.CommandEqual("admitir"))
 
 	bh.Handle(func(ctx *th.Context, update telego.Update) error {
-		fmt.Printf("New member %s", update.Message.NewChatMembers[0].Username)
-		msg := sendMarkdown(ctx, update.Message.Chat.ID, fmt.Sprintf(`
+		fmt.Printf("Admission: New member %s", update.Message.NewChatMembers[0].Username)
+		msg := service.SendMarkdown(ctx, update.Message.Chat.ID, fmt.Sprintf(`
 			¡Bienvenido/a, %s PARA ENTRAR:
 			- Leer las [normas](%s) (y estar de acuerdo con ellas)
 			- Ser mayor de edad: por las nuevas políticas de Telegram no podemos aceptar a personas menores de 18 años.
@@ -114,7 +128,34 @@ func main() {
 			config.PresentationTemplateMessageUrl))
 		service.InsertNewUser(update.Message.NewChatMembers[0].ID, msg.MessageID)
 		return nil
-	}, NewMember())
+	}, service.NewMember(config.AdmissionGroupId))
+
+	bh.Handle(func(ctx *th.Context, update telego.Update) error {
+		newUser := update.Message.NewChatMembers[0]
+		fmt.Printf("Group: New member %s", newUser.Username)
+
+		banError := bot.BanChatMember(ctx, &telego.BanChatMemberParams{
+			ChatID: tu.ID(int64(config.AdmissionGroupId)),
+			UserID: newUser.ID,
+		})
+
+		if banError != nil {
+			fmt.Println(banError)
+			return nil
+		}
+
+		unbanError := bot.UnbanChatMember(ctx, &telego.UnbanChatMemberParams{
+			ChatID: tu.ID(int64(config.AdmissionGroupId)),
+			UserID: newUser.ID,
+		})
+
+		if unbanError != nil {
+			fmt.Println(banError)
+			return nil
+		}
+
+		return nil
+	}, service.NewMember(config.GroupId))
 
 	bh.Handle(func(ctx *th.Context, update telego.Update) error {
 		// Send message
@@ -134,7 +175,7 @@ func main() {
 		service.DeleteNewUser(newUser.UserId)
 
 		return nil
-	}, LeftMember())
+	}, service.LeftMember())
 
 	privateChatCommands := telego.SetMyCommandsParams{
 		Commands: []telego.BotCommand{

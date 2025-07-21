@@ -81,11 +81,11 @@ func GetNewUserFromUserId(userId int64) model.NewUser {
 
 func GetNewUserByMessageId(messageId int64) model.NewUser {
 	var result model.NewUser
-	singleInstance.Where("message_id=?", int(messageId)).Find(&result)
+	singleInstance.Where("welcome_message_id=?", int(messageId)).Find(&result)
 	return result
 
 }
 
-func DeleteNewUser(welcomeMessageId int) {
-	singleInstance.Where("welcome_message_id=?", welcomeMessageId).Delete(&model.NewUser{})
+func DeleteNewUser(newUserId int) {
+	singleInstance.Where("new_user_id=?", newUserId).Delete(&model.NewUser{})
 }
