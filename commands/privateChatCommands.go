@@ -22,3 +22,10 @@ func hi(bh *th.BotHandler) {
 		return nil
 	}, th.CommandEqual("hi"))
 }
+
+var PrivateChatCommands = telego.SetMyCommandsParams{
+	Commands: []telego.BotCommand{
+		{Command: "hi", Description: "Hello"},
+	},
+	Scope: tu.ScopeAllPrivateChats(),
+}

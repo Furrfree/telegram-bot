@@ -52,3 +52,11 @@ func next_cumple(bh *th.BotHandler) {
 	}, th.CommandEqual("next_cumple"))
 
 }
+
+var GroupCommands = telego.SetMyCommandsParams{
+	Commands: []telego.BotCommand{
+		{Command: "add_cumple", Description: "Añade tu cumpleaños al bot."},
+		{Command: "next_cumple", Description: "Muestra el próximo cumpleaños"},
+	},
+	Scope: tu.ScopeAllGroupChats(),
+}
