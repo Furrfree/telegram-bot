@@ -2,7 +2,6 @@ package commands
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/furrfree/telegram-bot/configuration"
 	"github.com/mymmrac/telego"
@@ -12,7 +11,6 @@ import (
 
 func AddCommands(bh *th.BotHandler, bot *telego.Bot) {
 
-	fmt.Println(configuration.Conf.AdmissionGroupId)
 	// Private chat commands
 	addPrivateCommands(bh, bot)
 	addGroupCommands(bh, bot)
