@@ -2,7 +2,6 @@ package service
 
 import (
 	"github.com/furrfree/telegram-bot/database"
-	"github.com/furrfree/telegram-bot/logger"
 	"github.com/furrfree/telegram-bot/model"
 	"github.com/lib/pq"
 )
@@ -35,7 +34,6 @@ func GetNewUserFromUserId(userId int64) model.NewUser {
 func GetNewUserByUsername(username string) model.NewUser {
 	var result model.NewUser
 	database.Database.Where("username = ?", username).Find(&result)
-	logger.Log(result)
 	return result
 
 }

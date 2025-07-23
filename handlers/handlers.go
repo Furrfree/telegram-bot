@@ -13,16 +13,27 @@ import (
 )
 
 func AddHandlers(bh *th.BotHandler, bot *telego.Bot) {
-	newMemberAdmissionGroup(bh)
+	newMemberAdmissionGroup(bh, bot)
 	newGroupMember(bh, bot)
 	leaveAdmissionGroup(bh, bot)
 
 }
 
-func newMemberAdmissionGroup(bh *th.BotHandler) {
+func newMemberAdmissionGroup(bh *th.BotHandler, bot *telego.Bot) {
 	bh.Handle(func(ctx *th.Context, update telego.Update) error {
+
+		// Remove join message
+		err := bot.DeleteMessage(ctx, &telego.DeleteMessageParams{
+			ChatID:    tu.ID(int64(configuration.Conf.AdmissionGroupId)),
+			MessageID: update.Message.MessageID,
+		})
+
+		if err != nil {
+			logger.Error("Could not delete user joined message")
+		}
+
 		newMember := update.Message.NewChatMembers[0]
-		fmt.Printf("Admission: New member %s", update.Message.NewChatMembers[0].Username)
+		logger.Log(fmt.Sprintf("Admission: New member %s", update.Message.NewChatMembers[0].Username))
 		msg := utils.SendMarkdown(ctx, update.Message.Chat.ID, fmt.Sprintf(`
 			¡Bienvenido/a, %s PARA ENTRAR:
 			- Leer las [normas](%s) (y estar de acuerdo con ellas)
@@ -43,7 +54,7 @@ func newMemberAdmissionGroup(bh *th.BotHandler) {
 func newGroupMember(bh *th.BotHandler, bot *telego.Bot) {
 	bh.Handle(func(ctx *th.Context, update telego.Update) error {
 		newUser := update.Message.NewChatMembers[0]
-		fmt.Printf("Group: New member %s", newUser.Username)
+		logger.Log(fmt.Sprintf("Group: New member %s", newUser.Username))
 
 		banError := bot.BanChatMember(ctx, &telego.BanChatMemberParams{
 			ChatID: tu.ID(int64(configuration.Conf.AdmissionGroupId)),
@@ -71,8 +82,18 @@ func newGroupMember(bh *th.BotHandler, bot *telego.Bot) {
 
 func leaveAdmissionGroup(bh *th.BotHandler, bot *telego.Bot) {
 	bh.Handle(func(ctx *th.Context, update telego.Update) error {
-		// Send message
-		fmt.Printf("Left member %s", update.Message.LeftChatMember.Username)
+
+		// Remove left message
+		errDeleteingLeftMessage := bot.DeleteMessage(ctx, &telego.DeleteMessageParams{
+			ChatID:    tu.ID(int64(configuration.Conf.AdmissionGroupId)),
+			MessageID: update.Message.MessageID,
+		})
+
+		if errDeleteingLeftMessage != nil {
+			logger.Error("Could not delete user left message")
+		}
+
+		logger.Log(fmt.Sprintf("Left member %s", update.Message.LeftChatMember.Username))
 
 		newUser := service.GetNewUserFromUserId(update.Message.LeftChatMember.ID)
 		var messageIds []int

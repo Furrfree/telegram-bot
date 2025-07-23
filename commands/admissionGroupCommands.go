@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/furrfree/telegram-bot/configuration"
-	"github.com/furrfree/telegram-bot/logger"
 	"github.com/furrfree/telegram-bot/service"
 	"github.com/furrfree/telegram-bot/utils"
 	"github.com/mymmrac/telego"
@@ -23,7 +22,6 @@ func admitir(bh *th.BotHandler, bot *telego.Bot) {
 		}
 
 		username := strings.Split(args[0], "@")[1]
-		logger.Log(username)
 
 		newUser := service.GetNewUserByUsername(username)
 
