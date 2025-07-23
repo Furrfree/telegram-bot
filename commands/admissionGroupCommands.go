@@ -51,10 +51,3 @@ func admitir(bh *th.BotHandler, bot *telego.Bot) {
 	}, th.CommandEqual("admitir"))
 
 }
-
-var AdmissionGroupCommands = telego.SetMyCommandsParams{
-	Commands: []telego.BotCommand{
-		{Command: "admitir", Description: "Admite a un usuario"},
-	},
-	Scope: tu.ScopeChatAdministrators(telego.ChatID{ID: int64(configuration.Conf.AdmissionGroupId)}),
-}

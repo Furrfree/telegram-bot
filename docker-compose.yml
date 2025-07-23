@@ -1,8 +1,7 @@
 services:
   furrfree-telegram-bot:
     container_name: furrfree-tg
-    build:
-      context: .
+    image: ghcr.io/furrfree/telegram-bot:latest
 
     env_file: .env
     restart: unless-stopped
