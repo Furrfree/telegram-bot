@@ -4,4 +4,6 @@ services:
     image: ghcr.io/furrfree/telegram-bot:latest
 
     env_file: .env
+    volumes:
+      - ./database.db:/app/database.db
     restart: unless-stopped
