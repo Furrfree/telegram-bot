@@ -47,7 +47,7 @@ func next_cumple(bh *th.BotHandler) {
 			return nil
 		}
 
-		utils.Reply(ctx, message.Chat.ID, message.MessageID, fmt.Sprintf("El siguiente cumple es el de @%s el dia %s", nextBirthday.Username, nextBirthday.Date.Format("02/01/2006")))
+		utils.Reply(ctx, message.Chat.ID, message.MessageID, fmt.Sprintf("El siguiente cumple es el de @%s el %s", nextBirthday.Username, utils.ParseBirthday(nextBirthday.Date)))
 		return nil
 	}, th.CommandEqual("next_cumple"))
 
