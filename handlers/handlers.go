@@ -45,7 +45,7 @@ func newMemberAdmissionGroup(bh *th.BotHandler, bot *telego.Bot) {
 			update.Message.NewChatMembers[0].Username,
 			configuration.Conf.RulesMessageUrl,
 			configuration.Conf.PresentationTemplateMessageUrl))
-		service.InsertNewUser(newMember.ID, newMember.Username, msg.MessageID)
+		service.InsertNewUser(newMember.ID, update.Message.Chat.ID, newMember.Username)
 		service.InsertNewUserMessage(newMember.ID, int64(msg.MessageID))
 		return nil
 	}, utils.NewMember(configuration.Conf.AdmissionGroupId))

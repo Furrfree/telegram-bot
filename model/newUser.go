@@ -1,9 +1,15 @@
 package model
 
-import "github.com/lib/pq"
+import (
+	"time"
+
+	"github.com/lib/pq"
+)
 
 type NewUser struct {
-	UserId   int `gorm:"primaryKey";autoIncrement:false"`
-	Username string
-	Messages pq.Int64Array `gorm:"type:int[]"`
+	UserId     int `gorm:"primaryKey";autoIncrement:false"`
+	ChatID     int
+	Username   string
+	Messages   pq.Int64Array `gorm:"type:int[]"`
+	DateJoined time.Time
 }
