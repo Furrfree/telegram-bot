@@ -85,6 +85,7 @@ func newGroupMember(bh *th.BotHandler, bot *telego.Bot) {
 
 func leaveAdmissionGroup(bh *th.BotHandler, bot *telego.Bot) {
 	bh.Handle(func(ctx *th.Context, update telego.Update) error {
+		logger.Log(fmt.Sprintf("Admission: Left member %s", update.Message.LeftChatMember.Username))
 
 		// Remove left message
 		if errDeleteingLeftMessage := bot.DeleteMessage(ctx, &telego.DeleteMessageParams{
@@ -94,28 +95,22 @@ func leaveAdmissionGroup(bh *th.BotHandler, bot *telego.Bot) {
 			logger.Error("Could not delete user left message")
 		}
 
-		logger.Log(fmt.Sprintf("Admission: Left member %s", update.Message.LeftChatMember.Username))
-
 		newUser := service.GetNewUserByUsername(update.Message.LeftChatMember.Username)
-		fmt.Println(newUser)
+
+		// Get messages
 		var messageIds []int
-
-		fmt.Println(newUser.Messages)
-
 		for _, x := range newUser.Messages {
 			messageIds = append(messageIds, int(x))
 		}
 
-		fmt.Println(messageIds)
+		// Remove messages
 		if err := bot.DeleteMessages(ctx, &telego.DeleteMessagesParams{
 			ChatID:     tu.ID(int64(configuration.Conf.AdmissionGroupId)),
 			MessageIDs: messageIds,
 		}); err != nil {
 			logger.Error(err)
 		}
-
 		service.DeleteNewUser(newUser.UserId)
-
 		return nil
 	}, utils.LeftMember(configuration.Conf.AdmissionGroupId))
 }

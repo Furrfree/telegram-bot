@@ -20,7 +20,7 @@ func AddCoroutines(bot *telego.Bot) {
 }
 
 func waitUntilTwoDaysAfterJoined(user model.NewUser) {
-	targetTime := user.DateJoined.Add(10 * time.Second)
+	targetTime := user.DateJoined.Add(48 * time.Hour)
 	duration := time.Until(targetTime)
 	logger.Log(fmt.Sprintf("Coroutines: Waiting until %s", targetTime.String()))
 	if duration > 0 {
@@ -49,7 +49,7 @@ func newAdmissionUser(bot *telego.Bot) {
 				logger.Error(err)
 				return
 			}
-			logger.Log(fmt.Sprintf("Removed user %s from Admission", olderUser.Username))
+			logger.Log(fmt.Sprintf("Coroutines: Banned user %s from Admission", olderUser.Username))
 		}
 
 	}
