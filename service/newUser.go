@@ -3,7 +3,6 @@ package service
 import (
 	"time"
 
-	"github.com/furrfree/telegram-bot/coroutines"
 	"github.com/furrfree/telegram-bot/database"
 	"github.com/furrfree/telegram-bot/model"
 	"github.com/lib/pq"
@@ -23,11 +22,7 @@ func InsertNewUser(userId int64, chatId int64, username string) {
 		DateJoined: time.Now(),
 		ChatID:     int(chatId),
 	})
-	// Send signal
-	select {
-	case coroutines.NewUserAddedChan <- struct{}{}:
-	default:
-	}
+
 }
 
 func InsertNewUserMessage(userId int64, messageId int64) {

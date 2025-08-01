@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/furrfree/telegram-bot/configuration"
+	"github.com/furrfree/telegram-bot/coroutines"
 	"github.com/furrfree/telegram-bot/logger"
 	"github.com/furrfree/telegram-bot/service"
 	"github.com/furrfree/telegram-bot/utils"
@@ -47,6 +48,12 @@ func newMemberAdmissionGroup(bh *th.BotHandler, bot *telego.Bot) {
 			configuration.Conf.PresentationTemplateMessageUrl))
 		service.InsertNewUser(newMember.ID, update.Message.Chat.ID, newMember.Username)
 		service.InsertNewUserMessage(newMember.ID, int64(msg.MessageID))
+		// Send signal to couroutine of new member in admission
+		select {
+		case coroutines.NewUserAddedChan <- struct{}{}:
+		default:
+		}
+
 		return nil
 	}, utils.NewMember(configuration.Conf.AdmissionGroupId))
 }
@@ -56,22 +63,18 @@ func newGroupMember(bh *th.BotHandler, bot *telego.Bot) {
 		newUser := update.Message.NewChatMembers[0]
 		logger.Log(fmt.Sprintf("Group: New member %s", newUser.Username))
 
-		banError := bot.BanChatMember(ctx, &telego.BanChatMemberParams{
+		if banError := bot.BanChatMember(ctx, &telego.BanChatMemberParams{
 			ChatID: tu.ID(int64(configuration.Conf.AdmissionGroupId)),
 			UserID: newUser.ID,
-		})
-
-		if banError != nil {
+		}); banError != nil {
 			logger.Error(banError)
 			return nil
 		}
 
-		unbanError := bot.UnbanChatMember(ctx, &telego.UnbanChatMemberParams{
+		if unbanError := bot.UnbanChatMember(ctx, &telego.UnbanChatMemberParams{
 			ChatID: tu.ID(int64(configuration.Conf.AdmissionGroupId)),
 			UserID: newUser.ID,
-		})
-
-		if unbanError != nil {
+		}); unbanError != nil {
 			logger.Error(unbanError)
 			return nil
 		}
@@ -84,12 +87,10 @@ func leaveAdmissionGroup(bh *th.BotHandler, bot *telego.Bot) {
 	bh.Handle(func(ctx *th.Context, update telego.Update) error {
 
 		// Remove left message
-		errDeleteingLeftMessage := bot.DeleteMessage(ctx, &telego.DeleteMessageParams{
+		if errDeleteingLeftMessage := bot.DeleteMessage(ctx, &telego.DeleteMessageParams{
 			ChatID:    tu.ID(int64(configuration.Conf.AdmissionGroupId)),
 			MessageID: update.Message.MessageID,
-		})
-
-		if errDeleteingLeftMessage != nil {
+		}); errDeleteingLeftMessage != nil {
 			logger.Error("Could not delete user left message")
 		}
 
@@ -101,12 +102,11 @@ func leaveAdmissionGroup(bh *th.BotHandler, bot *telego.Bot) {
 		for _, x := range service.GetNewUserFromUserId(int64(newUser.UserId)).Messages {
 			messageIds = append(messageIds, int(x))
 		}
-		err := bot.DeleteMessages(ctx, &telego.DeleteMessagesParams{
+
+		if err := bot.DeleteMessages(ctx, &telego.DeleteMessagesParams{
 			ChatID:     tu.ID(int64(configuration.Conf.AdmissionGroupId)),
 			MessageIDs: messageIds,
-		})
-
-		if err != nil {
+		}); err != nil {
 			logger.Error(err)
 		}
 

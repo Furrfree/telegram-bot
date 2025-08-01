@@ -34,12 +34,12 @@ func InitializeConfig() {
 func getIntEnvVariable(name string) int {
 	envVar := os.Getenv(name)
 	if envVar == "" {
-		logger.Error("Env variable %s required", name)
+		logger.Fatal("Env variable %s required", name)
 	}
 
 	intValue, err := strconv.Atoi(envVar)
 	if err != nil {
-		logger.Error("Env variable %s must be integer", name)
+		logger.Fatal("Env variable %s must be integer", name)
 	}
 
 	return intValue
@@ -48,7 +48,7 @@ func getIntEnvVariable(name string) int {
 func getStringEnvVariable(name string) string {
 	envVar := os.Getenv(name)
 	if envVar == "" {
-		logger.Error("Env variable %s required", name)
+		logger.Fatal("Env variable %s required", name)
 	}
 
 	return envVar
@@ -57,7 +57,7 @@ func getStringEnvVariable(name string) string {
 func GetConfig() *Config {
 	err := godotenv.Load()
 	if err != nil {
-		logger.Error("Error loading .env file")
+		logger.Fatal("Error loading .env file")
 	}
 
 	return &Config{
