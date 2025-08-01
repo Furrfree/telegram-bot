@@ -41,7 +41,6 @@ func newAdmissionUser(bot *telego.Bot) {
 
 		// If user still in admission group, ban it
 		if service.UserExists(int64(olderUser.UserId)) {
-			service.DeleteNewUser(olderUser.UserId)
 			err := bot.BanChatMember(context.Background(), &telego.BanChatMemberParams{
 				ChatID: tu.ID(int64(olderUser.ChatID)),
 				UserID: int64(olderUser.UserId),

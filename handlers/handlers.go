@@ -96,13 +96,17 @@ func leaveAdmissionGroup(bh *th.BotHandler, bot *telego.Bot) {
 
 		logger.Log(fmt.Sprintf("Admission: Left member %s", update.Message.LeftChatMember.Username))
 
-		newUser := service.GetNewUserFromUserId(update.Message.LeftChatMember.ID)
+		newUser := service.GetNewUserByUsername(update.Message.LeftChatMember.Username)
+		fmt.Println(newUser)
 		var messageIds []int
 
-		for _, x := range service.GetNewUserFromUserId(int64(newUser.UserId)).Messages {
+		fmt.Println(newUser.Messages)
+
+		for _, x := range newUser.Messages {
 			messageIds = append(messageIds, int(x))
 		}
 
+		fmt.Println(messageIds)
 		if err := bot.DeleteMessages(ctx, &telego.DeleteMessagesParams{
 			ChatID:     tu.ID(int64(configuration.Conf.AdmissionGroupId)),
 			MessageIDs: messageIds,

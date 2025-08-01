@@ -39,13 +39,10 @@ func UserExists(userId int64) bool {
 	return result.Error == nil
 }
 
-func GetNewUserFromUserId(userId int64) *model.NewUser {
-
+func GetNewUserFromUserId(userId int64) model.NewUser {
 	var result model.NewUser
-
-	database.Database.Find(&result, "user_id=?", int(userId))
-
-	return &result
+	database.Database.Where("user_id=?", userId).Find(&result)
+	return result
 
 }
 
