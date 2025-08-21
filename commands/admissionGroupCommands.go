@@ -2,7 +2,6 @@ package commands
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/furrfree/telegram-bot/configuration"
 	"github.com/furrfree/telegram-bot/service"
@@ -14,17 +13,11 @@ import (
 
 func admitir(bh *th.BotHandler, bot *telego.Bot) {
 	bh.HandleMessage(func(ctx *th.Context, message telego.Message) error {
-		_, _, args := tu.ParseCommand(message.Text)
 
-		if len(args) == 0 {
-			utils.Reply(ctx, message.Chat.ID, message.MessageID, "Error: No se ha especificado el usuario")
-			return nil
+		if message.ReplyToMessage.From.ID == bot.ID() {
+			utils.SendMessage(ctx, message.Chat.ChatID().ID, "Error: Responde con este comando al mensaje de presentación del usuario al que admitir")
 		}
-
-		username := strings.Split(args[0], "@")[1]
-
-		newUser := service.GetNewUserByUsername(username)
-
+		newUser := service.GetNewUserFromUserId(message.ReplyToMessage.From.ID)
 		service.InsertNewUserMessage(int64(newUser.UserId), int64(message.MessageID))
 
 		if newUser.UserId == 0 {

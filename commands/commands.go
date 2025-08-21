@@ -47,7 +47,7 @@ func addGroupAdminCommands(bh *th.BotHandler, bot *telego.Bot) {
 	admitir(bh, bot)
 	var AdmissionGroupCommands = telego.SetMyCommandsParams{
 		Commands: []telego.BotCommand{
-			{Command: "admitir", Description: "Admite a un usuario"},
+			{Command: "admitir", Description: "Admite a un usuario respondiendo a la presentación de un usuario"},
 		},
 		Scope: tu.ScopeChatAdministrators(telego.ChatID{ID: int64(configuration.Conf.AdmissionGroupId)}),
 	}
