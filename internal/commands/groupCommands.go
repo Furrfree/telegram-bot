@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/furrfree/telegram-bot/service"
-	"github.com/furrfree/telegram-bot/utils"
+	"github.com/furrfree/telegram-bot/internal/service"
+	"github.com/furrfree/telegram-bot/internal/utils"
 	"github.com/mymmrac/telego"
 	th "github.com/mymmrac/telego/telegohandler"
 	tu "github.com/mymmrac/telego/telegoutil"

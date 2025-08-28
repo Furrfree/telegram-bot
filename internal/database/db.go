@@ -5,8 +5,8 @@ import (
 	"os"
 	"sync"
 
-	"github.com/furrfree/telegram-bot/logger"
-	"github.com/furrfree/telegram-bot/model"
+	"github.com/furrfree/telegram-bot/internal/logger"
+	"github.com/furrfree/telegram-bot/internal/model"
 	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 )

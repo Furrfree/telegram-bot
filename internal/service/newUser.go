@@ -3,8 +3,8 @@ package service
 import (
 	"time"
 
-	"github.com/furrfree/telegram-bot/database"
-	"github.com/furrfree/telegram-bot/model"
+	"github.com/furrfree/telegram-bot/internal/database"
+	"github.com/furrfree/telegram-bot/internal/model"
 	"github.com/lib/pq"
 )
 

@@ -3,7 +3,7 @@ package commands
 import (
 	"context"
 
-	"github.com/furrfree/telegram-bot/configuration"
+	"github.com/furrfree/telegram-bot/internal/configuration"
 	"github.com/mymmrac/telego"
 	th "github.com/mymmrac/telego/telegohandler"
 	tu "github.com/mymmrac/telego/telegoutil"

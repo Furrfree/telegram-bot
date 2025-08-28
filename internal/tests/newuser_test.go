@@ -3,8 +3,8 @@ package tests
 import (
 	"testing"
 
-	"github.com/furrfree/telegram-bot/database"
-	"github.com/furrfree/telegram-bot/service"
+	"github.com/furrfree/telegram-bot/internal/database"
+	"github.com/furrfree/telegram-bot/internal/service"
 )
 
 func TestInsertNewUser(t *testing.T) {

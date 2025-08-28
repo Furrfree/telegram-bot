@@ -3,12 +3,12 @@ package main
 import (
 	"context"
 
-	"github.com/furrfree/telegram-bot/commands"
-	"github.com/furrfree/telegram-bot/configuration"
-	"github.com/furrfree/telegram-bot/coroutines"
-	"github.com/furrfree/telegram-bot/database"
-	"github.com/furrfree/telegram-bot/handlers"
-	"github.com/furrfree/telegram-bot/logger"
+	"github.com/furrfree/telegram-bot/internal/commands"
+	"github.com/furrfree/telegram-bot/internal/configuration"
+	"github.com/furrfree/telegram-bot/internal/coroutines"
+	"github.com/furrfree/telegram-bot/internal/database"
+	"github.com/furrfree/telegram-bot/internal/handlers"
+	"github.com/furrfree/telegram-bot/internal/logger"
 	"github.com/mymmrac/telego"
 	th "github.com/mymmrac/telego/telegohandler"
 )

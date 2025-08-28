@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/furrfree/telegram-bot/logger"
-	"github.com/furrfree/telegram-bot/model"
-	"github.com/furrfree/telegram-bot/service"
+	"github.com/furrfree/telegram-bot/internal/logger"
+	"github.com/furrfree/telegram-bot/internal/model"
+	"github.com/furrfree/telegram-bot/internal/service"
 	"github.com/mymmrac/telego"
 	tu "github.com/mymmrac/telego/telegoutil"
 )

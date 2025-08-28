@@ -4,8 +4,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/furrfree/telegram-bot/database"
-	"github.com/furrfree/telegram-bot/model"
+	"github.com/furrfree/telegram-bot/internal/database"
+	"github.com/furrfree/telegram-bot/internal/model"
 )
 
 func InsertBirthday(userId int64, groupId int64, birthday time.Time, username string) {

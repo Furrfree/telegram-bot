@@ -3,11 +3,11 @@ package handlers
 import (
 	"fmt"
 
-	"github.com/furrfree/telegram-bot/configuration"
-	"github.com/furrfree/telegram-bot/coroutines"
-	"github.com/furrfree/telegram-bot/logger"
-	"github.com/furrfree/telegram-bot/service"
-	"github.com/furrfree/telegram-bot/utils"
+	"github.com/furrfree/telegram-bot/internal/configuration"
+	"github.com/furrfree/telegram-bot/internal/coroutines"
+	"github.com/furrfree/telegram-bot/internal/logger"
+	"github.com/furrfree/telegram-bot/internal/service"
+	"github.com/furrfree/telegram-bot/internal/utils"
 	"github.com/mymmrac/telego"
 	th "github.com/mymmrac/telego/telegohandler"
 	tu "github.com/mymmrac/telego/telegoutil"

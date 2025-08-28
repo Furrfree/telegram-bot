@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/furrfree/telegram-bot/database"
-	"github.com/furrfree/telegram-bot/service"
+	"github.com/furrfree/telegram-bot/internal/database"
+	"github.com/furrfree/telegram-bot/internal/service"
 )
 
 func TestInsertBirthday(t *testing.T) {

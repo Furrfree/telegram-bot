@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/furrfree/telegram-bot/logger"
+	"github.com/furrfree/telegram-bot/internal/logger"
 	"github.com/joho/godotenv"
 )
 
