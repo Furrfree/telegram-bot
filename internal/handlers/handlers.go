@@ -105,8 +105,7 @@ func leaveAdmissionGroup(bh *th.BotHandler, bot *telego.Bot) {
 		}); errDeleteingLeftMessage != nil {
 			logger.Error("Could not delete user left message")
 		}
-
-		newUser := service.GetNewUserByUsername(update.Message.LeftChatMember.Username)
+		newUser := service.GetNewUserFromUserId(update.Message.LeftChatMember.ID)
 
 		// Get messages
 		var messageIds []int
