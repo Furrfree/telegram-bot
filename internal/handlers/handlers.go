@@ -35,7 +35,7 @@ func newMemberAdmissionGroup(bh *th.BotHandler, bot *telego.Bot) {
 
 		newMember := update.Message.NewChatMembers[0]
 		logger.Log(fmt.Sprintf("Admission: New member %s", update.Message.NewChatMembers[0].Username))
-		msg := utils.SendMarkdown(ctx, update.Message.Chat.ID, fmt.Sprintf(`
+		msg, err := utils.SendMarkdown(ctx, update.Message.Chat.ID, fmt.Sprintf(`
 			¡Bienvenido/a, %s PARA ENTRAR:
 			- Leer las [normas](%s) (y estar de acuerdo con ellas)
 			- Ser mayor de edad: por las nuevas políticas de Telegram no podemos aceptar a personas menores de 18 años.
@@ -46,6 +46,10 @@ func newMemberAdmissionGroup(bh *th.BotHandler, bot *telego.Bot) {
 			update.Message.NewChatMembers[0].Username,
 			configuration.Conf.RulesMessageUrl,
 			configuration.Conf.PresentationTemplateMessageUrl))
+		if err != nil {
+			logger.Error("newMemberAdmissionGroup handler: Could not send welcome message", err.Error())
+			return nil
+		}
 		service.InsertNewUser(newMember.ID, update.Message.Chat.ID, newMember.Username)
 		service.InsertNewUserMessage(newMember.ID, int64(msg.MessageID))
 		// Send signal to couroutine of new member in admission

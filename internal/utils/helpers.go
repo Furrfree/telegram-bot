@@ -23,12 +23,13 @@ func SendMessage(ctx *th.Context, chatId int64, text string) *telego.Message {
 	return msg
 }
 
-func SendMarkdown(ctx *th.Context, chatId int64, text string) *telego.Message {
-	msg, _ := ctx.Bot().SendMessage(ctx, tu.Message(
+func SendMarkdown(ctx *th.Context, chatId int64, text string) (*telego.Message, error) {
+	msg, err := ctx.Bot().SendMessage(ctx, tu.Message(
 		tu.ID(chatId),
 		text,
 	).WithParseMode(telego.ModeMarkdown))
-	return msg
+
+	return msg, err
 }
 
 func IsDateValid(dateString string) bool {
