@@ -46,13 +46,6 @@ func GetNewUserFromUserId(userId int64) model.NewUser {
 
 }
 
-func GetNewUserByUsername(username string) model.NewUser {
-	var result model.NewUser
-	database.Database.Where("username = ?", username).Find(&result)
-	return result
-
-}
-
 func DeleteNewUser(newUserId int) {
 	database.Database.Where("user_id=?", newUserId).Delete(&model.NewUser{})
 }
