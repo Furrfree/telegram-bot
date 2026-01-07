@@ -34,7 +34,14 @@ func newMemberAdmissionGroup(bh *th.BotHandler, bot *telego.Bot) {
 		}
 
 		newMember := update.Message.NewChatMembers[0]
-		logger.Log(fmt.Sprintf("Admission: New member %s", update.Message.NewChatMembers[0].Username))
+		newMemberUsername := newMember.Username
+		newMemberMention := fmt.Sprintf("@%s", newMemberUsername)
+		if newMemberUsername == "" {
+			newMemberUsername = newMember.FirstName
+			newMemberMention = fmt.Sprintf("[%s](tg://user?id=%d)", newMemberUsername, newMember.ID)
+		}
+
+		logger.Log(fmt.Sprintf("Admission: New member %s", newMemberUsername))
 		msg, err := utils.SendMarkdown(ctx, update.Message.Chat.ID, fmt.Sprintf(`
 			¡Bienvenido/a, %s PARA ENTRAR:
 			- Leer las [normas](%s) (y estar de acuerdo con ellas)
@@ -43,7 +50,7 @@ func newMemberAdmissionGroup(bh *th.BotHandler, bot *telego.Bot) {
 			- Breve descripción y con qué podrías aportar (arte, quedadas, etc) (opcional)
 			- Una vez os leamos seréis admitidos y entraréis en el grupo. Cuando entréis abandonad el grupo de admisión, por favor. Un saludo! 💜🐺
 			`,
-			update.Message.NewChatMembers[0].Username,
+			newMemberMention,
 			configuration.Conf.RulesMessageUrl,
 			configuration.Conf.PresentationTemplateMessageUrl))
 		if err != nil {
